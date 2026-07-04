@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { Code2, Bot, Video, Zap, Menu, ArrowRight, X, Search, ChevronDown, ChevronUp, ExternalLink, Award, BookOpen, Wrench, GraduationCap } from "lucide-react";
+import { FaDatabase, FaGithub, FaMicroscope, FaRobot, FaCheckCircle, FaSpotify, FaDiscord, FaInstagram, FaTiktok, FaBook } from "react-icons/fa";
 
 // ─── Asset URLs ───────────────────────────────────────────────────────────────
 const BG_IMAGE_1 =
