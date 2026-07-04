@@ -824,38 +824,90 @@ function Footer() {
 
 // ─── Intro Loader ─────────────────────────────────────────────────────────────
 function IntroLoader({ onDone }) {
-  const [phase, setPhase] = useState("blank"); // blank -> reveal -> expand -> exit
+  const [phase, setPhase] = useState("blank"); // blank -> in -> hold -> exit
+  const [progress, setProgress] = useState(0);
 
   useEffect(() => {
     document.body.style.overflow = "hidden";
-    const t1 = setTimeout(() => setPhase("reveal"), 350);
-    const t2 = setTimeout(() => setPhase("expand"), 1300);
-    const t3 = setTimeout(() => setPhase("exit"), 2300);
-    const t4 = setTimeout(() => onDone(), 3050);
-    return () => { clearTimeout(t1); clearTimeout(t2); clearTimeout(t3); clearTimeout(t4); };
+    const t1 = setTimeout(() => setPhase("in"), 250);
+    const t2 = setTimeout(() => setPhase("hold"), 2100);
+    const t3 = setTimeout(() => setPhase("exit"), 2550);
+    const t4 = setTimeout(() => onDone(), 3350);
+
+    let raf;
+    const start = Date.now();
+    const duration = 1950;
+    const tick = () => {
+      const elapsed = Date.now() - start;
+      const pct = Math.min(100, Math.round((elapsed / duration) * 100));
+      setProgress(pct);
+      if (pct < 100) raf = requestAnimationFrame(tick);
+    };
+    const progressStart = setTimeout(() => { raf = requestAnimationFrame(tick); }, 250);
+
+    return () => {
+      clearTimeout(t1); clearTimeout(t2); clearTimeout(t3); clearTimeout(t4);
+      clearTimeout(progressStart);
+      if (raf) cancelAnimationFrame(raf);
+    };
   }, [onDone]);
 
   return (
     <div style={{
       position:"fixed", inset:0, zIndex:9999,
       background:"#000",
-      display:"flex", alignItems:"center", justifyContent:"center",
+      display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", gap:24,
       opacity: phase === "exit" ? 0 : 1,
-      transition:"opacity 0.75s cubic-bezier(0.16,1,0.3,1)",
+      transform: phase === "exit" ? "scale(1.045)" : "scale(1)",
+      filter: phase === "exit" ? "blur(8px)" : "blur(0px)",
+      transition:"opacity 0.9s cubic-bezier(0.16,1,0.3,1), transform 0.9s cubic-bezier(0.16,1,0.3,1), filter 0.9s ease",
       pointerEvents: phase === "exit" ? "none" : "auto",
     }}>
+      {/* Logo mark */}
+      <div style={{
+        opacity: phase === "blank" ? 0 : 1,
+        transform: phase === "blank" ? "translateY(6px) scale(0.85)" : "translateY(0) scale(1)",
+        transition:"opacity 0.6s ease, transform 0.6s cubic-bezier(0.16,1,0.3,1)",
+      }}>
+        <LogoIcon size={28} />
+      </div>
+
+      {/* Wordmark */}
       <span style={{
         color:"#fff",
         fontFamily:"'Inter',sans-serif",
-        fontSize:"clamp(24px,4.5vw,40px)",
+        fontSize:"clamp(18px,2.8vw,26px)",
         fontWeight:600,
         whiteSpace:"nowrap",
         opacity: phase === "blank" ? 0 : 1,
-        letterSpacing: phase === "expand" || phase === "exit" ? "0.7em" : "0.04em",
-        transform: phase === "blank" ? "translateY(6px)" : "translateY(0)",
-        transition:"opacity 0.7s ease, letter-spacing 1.1s cubic-bezier(0.16,1,0.3,1), transform 0.7s ease",
+        letterSpacing: phase === "blank" ? "0.04em" : "0.42em",
+        transition:"opacity 0.85s ease 0.1s, letter-spacing 1.5s cubic-bezier(0.16,1,0.3,1) 0.1s",
       }}>
-        Zae Labs
+        ZAE LABS
+      </span>
+
+      {/* Progress bar */}
+      <div style={{
+        width:130, height:1, background:"rgba(255,255,255,0.12)", position:"relative", overflow:"hidden",
+        opacity: phase === "blank" ? 0 : 1,
+        transition:"opacity 0.6s ease 0.35s",
+      }}>
+        <div style={{
+          position:"absolute", left:0, top:0, height:"100%",
+          width:`${progress}%`,
+          background:"#e8702a",
+          transition:"width 0.15s linear",
+        }} />
+      </div>
+
+      {/* Percentage counter */}
+      <span style={{
+        fontSize:11, letterSpacing:"0.15em", color:"rgba(255,255,255,0.35)",
+        fontVariantNumeric:"tabular-nums",
+        opacity: phase === "blank" ? 0 : 1,
+        transition:"opacity 0.6s ease 0.35s",
+      }}>
+        {String(progress).padStart(2,"0")}%
       </span>
     </div>
   );
