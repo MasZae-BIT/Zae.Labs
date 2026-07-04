@@ -166,7 +166,7 @@ function Nav({ unlocked }) {
 
       {/* Center pill — only shown after unlock, desktop */}
       <div className="desktop-nav-pill" style={{
-        position:"absolute", left:"50%", transform:"translateX(-50%)",
+        position:"absolute", left:"50%",
         background:"rgba(255,255,255,0.18)", backdropFilter:"blur(12px)",
         border:"1px solid rgba(255,255,255,0.28)", borderRadius:9999,
         padding:"6px 6px", display:"flex", alignItems:"center", gap:2,
