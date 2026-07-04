@@ -822,13 +822,54 @@ function Footer() {
   );
 }
 
+// ─── Intro Loader ─────────────────────────────────────────────────────────────
+function IntroLoader({ onDone }) {
+  const [phase, setPhase] = useState("blank"); // blank -> reveal -> expand -> exit
+
+  useEffect(() => {
+    document.body.style.overflow = "hidden";
+    const t1 = setTimeout(() => setPhase("reveal"), 350);
+    const t2 = setTimeout(() => setPhase("expand"), 1300);
+    const t3 = setTimeout(() => setPhase("exit"), 2300);
+    const t4 = setTimeout(() => onDone(), 3050);
+    return () => { clearTimeout(t1); clearTimeout(t2); clearTimeout(t3); clearTimeout(t4); };
+  }, [onDone]);
+
+  return (
+    <div style={{
+      position:"fixed", inset:0, zIndex:9999,
+      background:"#000",
+      display:"flex", alignItems:"center", justifyContent:"center",
+      opacity: phase === "exit" ? 0 : 1,
+      transition:"opacity 0.75s cubic-bezier(0.16,1,0.3,1)",
+      pointerEvents: phase === "exit" ? "none" : "auto",
+    }}>
+      <span style={{
+        color:"#fff",
+        fontFamily:"'Inter',sans-serif",
+        fontSize:"clamp(24px,4.5vw,40px)",
+        fontWeight:600,
+        whiteSpace:"nowrap",
+        opacity: phase === "blank" ? 0 : 1,
+        letterSpacing: phase === "expand" || phase === "exit" ? "0.7em" : "0.04em",
+        transform: phase === "blank" ? "translateY(6px)" : "translateY(0)",
+        transition:"opacity 0.7s ease, letter-spacing 1.1s cubic-bezier(0.16,1,0.3,1), transform 0.7s ease",
+      }}>
+        Zae Labs
+      </span>
+    </div>
+  );
+}
+
 // ─── App Root ─────────────────────────────────────────────────────────────────
 export default function App() {
   const [unlocked, setUnlocked] = useState(false);
+  const [introDone, setIntroDone] = useState(false);
 
   return (
     <>
       <style>{GLOBAL_CSS}</style>
+      {!introDone && <IntroLoader onDone={() => setIntroDone(true)} />}
       <div style={{ minHeight:"100vh",background:"#000",letterSpacing:"-0.02em",fontFamily:"'Inter',sans-serif" }}>
         <Nav unlocked={unlocked} />
         <HeroSection unlocked={unlocked} setUnlocked={setUnlocked} />
