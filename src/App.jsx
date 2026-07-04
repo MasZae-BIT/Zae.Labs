@@ -85,9 +85,47 @@ const GLOBAL_CSS = `
 // ─── Logo ─────────────────────────────────────────────────────────────────────
 function LogoIcon({ size = 26, fill = "#fff" }) {
   return (
-    <svg width={size} height={size} viewBox="0 0 256 256" fill={fill}>
-      <path d="M 256 256 L 128 256 L 0 128 L 128 128 Z M 256 128 L 128 128 L 0 0 L 128 0 Z" />
+    <svg width={size} height={size} viewBox="0 0 48 48" fill="none">
+      <circle cx="24" cy="24" r="20.5" stroke={fill} strokeWidth="2.2" opacity="0.95" />
+      <circle cx="24" cy="24" r="20.5" stroke={fill} strokeWidth="2.2" strokeDasharray="5 9" opacity="0.35" transform="rotate(52 24 24)" />
+      <circle cx="24" cy="24" r="4" fill={fill} />
+      <circle cx="24" cy="4.2" r="3.1" fill={fill} />
     </svg>
+  );
+}
+
+// ─── Scroll-linked Rotating Object ─────────────────────────────────────────────
+function ScrollSpin({ size = 280, accent = "#e8702a" }) {
+  const ref = useRef(null);
+  const rafRef = useRef(null);
+
+  useEffect(() => {
+    const onScroll = () => {
+      if (rafRef.current) return;
+      rafRef.current = requestAnimationFrame(() => {
+        const deg = window.scrollY * 0.10;
+        if (ref.current) ref.current.style.transform = `rotate(${deg}deg)`;
+        rafRef.current = null;
+      });
+    };
+    window.addEventListener("scroll", onScroll, { passive: true });
+    onScroll();
+    return () => {
+      window.removeEventListener("scroll", onScroll);
+      if (rafRef.current) cancelAnimationFrame(rafRef.current);
+    };
+  }, []);
+
+  return (
+    <div ref={ref} style={{ width: size, height: size, willChange: "transform", pointerEvents: "none" }}>
+      <svg viewBox="0 0 200 200" width="100%" height="100%" fill="none">
+        <circle cx="100" cy="100" r="94" stroke={accent} strokeOpacity="0.25" strokeWidth="1" strokeDasharray="3 9" />
+        <circle cx="100" cy="100" r="70" stroke="#fff" strokeOpacity="0.10" strokeWidth="1" />
+        <circle cx="100" cy="100" r="46" stroke={accent} strokeOpacity="0.16" strokeWidth="1" strokeDasharray="1 7" />
+        <circle cx="100" cy="6" r="4.5" fill={accent} fillOpacity="0.55" />
+        <circle cx="100" cy="194" r="3" fill="#fff" fillOpacity="0.25" />
+      </svg>
+    </div>
   );
 }
 
@@ -388,6 +426,9 @@ function AboutSection() {
   return (
     <section id="about" style={{ position:"relative",background:"#050505",color:"#fff",padding:"96px 56px",overflow:"hidden" }}>
       <div style={{ position:"absolute",top:-128,right:-128,width:420,height:420,background:"rgba(232,112,42,0.18)",filter:"blur(120px)",borderRadius:"50%",pointerEvents:"none" }} />
+      <div style={{ position:"absolute",top:"8%",right:"4%",opacity:0.9 }}>
+        <ScrollSpin size={220} />
+      </div>
       <div style={{ maxWidth:1152,margin:"0 auto",display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(300px,1fr))",gap:64,alignItems:"start" }}>
         <div>
           <p style={{ fontSize:11,textTransform:"uppercase",letterSpacing:"0.3em",color:"#e8702a",fontWeight:600,marginBottom:24 }}>About Zae Labs</p>
@@ -516,7 +557,10 @@ function CertCard({ icon, title, desc, links }) {
 
 function CertificationsSection() {
   return (
-    <section style={{ background:"#050505",color:"#fff",padding:"96px 56px" }}>
+    <section style={{ position:"relative",background:"#050505",color:"#fff",padding:"96px 56px",overflow:"hidden" }}>
+      <div style={{ position:"absolute",top:"20%",right:"-6%",opacity:0.8 }}>
+        <ScrollSpin size={200} />
+      </div>
       <div style={{ maxWidth:1152,margin:"0 auto" }}>
         <p style={{ fontSize:11,textTransform:"uppercase",letterSpacing:"0.3em",color:"#e8702a",fontWeight:600,marginBottom:16 }}>Certifications</p>
         <h2 style={{ fontSize:"clamp(32px,5vw,56px)",fontWeight:500,letterSpacing:"-0.06em",lineHeight:0.95,marginBottom:48,maxWidth:560 }}>
@@ -634,6 +678,9 @@ const WORKFLOW_STEPS = [
 function WorkflowSection() {
   return (
     <section id="workflow" style={{ position:"relative",background:"#000",color:"#fff",padding:"96px 56px",overflow:"hidden" }}>
+      <div style={{ position:"absolute",bottom:"-6%",left:"-4%",opacity:0.85 }}>
+        <ScrollSpin size={260} />
+      </div>
       <div style={{ maxWidth:1152,margin:"0 auto",display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(300px,1fr))",gap:64,alignItems:"center" }}>
         <div>
           <p style={{ fontSize:11,textTransform:"uppercase",letterSpacing:"0.3em",color:"#e8702a",fontWeight:600,marginBottom:20 }}>AI Workflow</p>
