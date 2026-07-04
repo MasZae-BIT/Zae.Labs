@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { Code2, Bot, Video, Zap, Menu, ArrowRight, X, Search, ChevronDown, ChevronUp, ExternalLink, Award, BookOpen, Wrench, GraduationCap } from "lucide-react";
-import { FaDatabase, FaGithub, FaMicroscope, FaRobot, FaCheckCircle, FaSpotify, FaDiscord, FaInstagram, FaTiktok, FaBook } from "react-icons/fa";
+import { FaDatabase, FaGithub, FaMicroscope, FaRobot, FaCheckCircle, FaSpotify, FaDiscord, FaInstagram, FaTiktok, FaBook, FaGraduationCap, FaTrophy, FaScroll, FaLinkedin, FaTwitter, FaEnvelope } from "react-icons/fa";
 
 // ─── Asset URLs ───────────────────────────────────────────────────────────────
 const BG_IMAGE_1 =
@@ -457,7 +457,7 @@ function ExperienceSection() {
 // ─── Certifications Section ───────────────────────────────────────────────────
 const CERTS = [
   {
-    icon: "🎓",
+    icon: <FaGraduationCap/>,
     title: "Google Certification",
     desc: "Official certifications from Google demonstrating industry-standard technical competence and expertise.",
     links: [
@@ -466,7 +466,7 @@ const CERTS = [
     ],
   },
   {
-    icon: "🏆",
+    icon: <FaTrophy/>,
     title: "IBM Certification",
     desc: "Official certifications from IBM SkillsBuild validating advanced technical skills and problem-solving abilities.",
     links: [
@@ -477,7 +477,7 @@ const CERTS = [
     ],
   },
   {
-    icon: "📜",
+    icon: <FaScroll/>,
     title: "Ruang Guru Certification",
     desc: "Official certifications validating achievements, technical skills, and dedication in the technology field.",
     links: [
@@ -491,7 +491,7 @@ function CertCard({ icon, title, desc, links }) {
   const [open, setOpen] = useState(false);
   return (
     <div style={{ borderRadius:28,border:"1px solid rgba(255,255,255,0.10)",background:"rgba(15,15,15,0.60)",padding:"32px 28px",backdropFilter:"blur(20px)",display:"flex",flexDirection:"column",gap:16,transition:"all 0.35s" }}>
-      <div style={{ fontSize:36 }}>{icon}</div>
+      <div style={{ fontSize:36, color:"#e8702a" }}>{icon}</div>
       <h3 style={{ fontSize:20,fontWeight:600,letterSpacing:"-0.03em" }}>{title}</h3>
       <p style={{ fontSize:14,color:"rgba(255,255,255,0.60)",lineHeight:1.65 }}>{desc}</p>
       <div>
@@ -750,10 +750,10 @@ function Footer() {
   ];
 
   const socials = [
-    { icon:"📸", href:"https://www.instagram.com/irsyazaelani/", label:"Instagram" },
-    { icon:"💼", href:"https://www.linkedin.com/in/muhammad-irsya-zaelani", label:"LinkedIn" },
-    { icon:"🐦", href:"https://x.com/TweetsOfCats/status/1578127628179210240", label:"X" },
-    { icon:"📧", href:"https://maszae-bit.github.io/Login-Zae-Group/", label:"Newsletter" },
+    { icon:<FaInstagram/>, href:"https://www.instagram.com/irsyazaelani/", label:"Instagram" },
+    { icon:<FaLinkedin/>, href:"https://www.linkedin.com/in/muhammad-irsya-zaelani", label:"LinkedIn" },
+    { icon:<FaTwitter/>, href:"https://x.com/TweetsOfCats/status/1578127628179210240", label:"X" },
+    { icon:<FaEnvelope/>, href:"https://maszae-bit.github.io/Login-Zae-Group/", label:"Newsletter" },
   ];
 
   return (
