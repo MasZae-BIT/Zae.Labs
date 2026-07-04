@@ -95,16 +95,19 @@ function LogoIcon({ size = 26, fill = "#fff" }) {
 }
 
 // ─── Scroll-linked Rotating Object ─────────────────────────────────────────────
-function ScrollSpin({ size = 280, accent = "#e8702a" }) {
-  const ref = useRef(null);
+function ScrollSpin({ size = 280, accent = "#e8702a", reverse = false, dim = 1 }) {
+  const outerRef = useRef(null);
+  const midRef = useRef(null);
   const rafRef = useRef(null);
 
   useEffect(() => {
+    const dir = reverse ? -1 : 1;
     const onScroll = () => {
       if (rafRef.current) return;
       rafRef.current = requestAnimationFrame(() => {
-        const deg = window.scrollY * 0.10;
-        if (ref.current) ref.current.style.transform = `rotate(${deg}deg)`;
+        const y = window.scrollY;
+        if (outerRef.current) outerRef.current.style.transform = `rotate(${y * 0.11 * dir}deg)`;
+        if (midRef.current) midRef.current.style.transform = `rotate(${y * -0.19 * dir}deg)`;
         rafRef.current = null;
       });
     };
@@ -114,17 +117,27 @@ function ScrollSpin({ size = 280, accent = "#e8702a" }) {
       window.removeEventListener("scroll", onScroll);
       if (rafRef.current) cancelAnimationFrame(rafRef.current);
     };
-  }, []);
+  }, [reverse]);
 
   return (
-    <div ref={ref} style={{ width: size, height: size, willChange: "transform", pointerEvents: "none" }}>
-      <svg viewBox="0 0 200 200" width="100%" height="100%" fill="none">
-        <circle cx="100" cy="100" r="94" stroke={accent} strokeOpacity="0.25" strokeWidth="1" strokeDasharray="3 9" />
-        <circle cx="100" cy="100" r="70" stroke="#fff" strokeOpacity="0.10" strokeWidth="1" />
-        <circle cx="100" cy="100" r="46" stroke={accent} strokeOpacity="0.16" strokeWidth="1" strokeDasharray="1 7" />
-        <circle cx="100" cy="6" r="4.5" fill={accent} fillOpacity="0.55" />
-        <circle cx="100" cy="194" r="3" fill="#fff" fillOpacity="0.25" />
-      </svg>
+    <div style={{ position:"relative", width:size, height:size, pointerEvents:"none", opacity:dim }}>
+      {/* Outer dashed ring — orbits one way */}
+      <div ref={outerRef} style={{ position:"absolute", inset:0, willChange:"transform" }}>
+        <svg viewBox="0 0 200 200" width="100%" height="100%" fill="none">
+          <circle cx="100" cy="100" r="97" stroke={accent} strokeOpacity="0.30" strokeWidth="1" strokeDasharray="2 10" />
+          <circle cx="100" cy="3" r="4.6" fill={accent} fillOpacity="0.75" />
+          <circle cx="100" cy="197" r="2.4" fill="#fff" fillOpacity="0.30" />
+        </svg>
+      </div>
+      {/* Middle solid ring — orbits opposite way, faster */}
+      <div ref={midRef} style={{ position:"absolute", inset:"16%", willChange:"transform" }}>
+        <svg viewBox="0 0 200 200" width="100%" height="100%" fill="none">
+          <circle cx="100" cy="100" r="97" stroke="#fff" strokeOpacity="0.15" strokeWidth="1" />
+          <circle cx="196" cy="100" r="3.4" fill={accent} fillOpacity="0.55" />
+        </svg>
+      </div>
+      {/* Static inner ring for depth */}
+      <div style={{ position:"absolute", inset:"36%", borderRadius:"50%", border:`1px solid ${accent}`, opacity:0.18 }} />
     </div>
   );
 }
@@ -380,7 +393,13 @@ function PortfolioHero() {
   }, []);
 
   return (
-    <section id="portfolio" style={{ background:"#000",color:"#fff",padding:"120px 56px 80px",minHeight:"100vh",display:"flex",alignItems:"center" }}>
+    <section id="portfolio" style={{ position:"relative",background:"#000",color:"#fff",padding:"120px 56px 80px",minHeight:"100vh",display:"flex",alignItems:"center",overflow:"hidden" }}>
+      <div style={{ position:"absolute",top:"10%",left:"2%",opacity:0.7 }}>
+        <ScrollSpin size={180} reverse />
+      </div>
+      <div style={{ position:"absolute",bottom:"6%",right:"3%",opacity:0.6 }}>
+        <ScrollSpin size={140} accent="#ffffff" dim={0.5} />
+      </div>
       <div id="portfolio-hero-trigger" style={{ maxWidth:1152,margin:"0 auto",width:"100%",display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(300px,1fr))",gap:64,alignItems:"center" }}>
         {/* Left text */}
         <div>
@@ -481,6 +500,9 @@ function ExperienceSection() {
   return (
     <section id="experience" style={{ position:"relative",background:"#000",color:"#fff",padding:"96px 56px",overflow:"hidden" }}>
       <div style={{ position:"absolute",bottom:-80,left:-80,width:360,height:360,background:"rgba(232,112,42,0.10)",filter:"blur(100px)",borderRadius:"50%",pointerEvents:"none" }} />
+      <div style={{ position:"absolute",top:"6%",right:"-5%",opacity:0.75 }}>
+        <ScrollSpin size={230} reverse />
+      </div>
       <div style={{ maxWidth:1152,margin:"0 auto" }}>
         <p style={{ fontSize:11,textTransform:"uppercase",letterSpacing:"0.3em",color:"#e8702a",fontWeight:600,marginBottom:16 }}>Experience</p>
         <h2 style={{ fontSize:"clamp(32px,5vw,56px)",fontWeight:500,letterSpacing:"-0.06em",lineHeight:0.95,marginBottom:12,maxWidth:600 }}>
@@ -595,7 +617,10 @@ function ToolsSection() {
     : TOOLS.filter(t => t.keyword.toLowerCase().includes(query.toLowerCase()) || t.name.toLowerCase().includes(query.toLowerCase()));
 
   return (
-    <section id="tools" style={{ background:"#000",color:"#fff",padding:"96px 56px" }}>
+    <section id="tools" style={{ position:"relative",background:"#000",color:"#fff",padding:"96px 56px",overflow:"hidden" }}>
+      <div style={{ position:"absolute",top:"4%",left:"-4%",opacity:0.6 }}>
+        <ScrollSpin size={200} accent="#ffffff" dim={0.45} />
+      </div>
       <div style={{ maxWidth:1152,margin:"0 auto" }}>
         {/* Header */}
         <div style={{ textAlign:"center",marginBottom:48 }}>
@@ -653,7 +678,10 @@ function PromptCard({ Icon, title, desc, pill }) {
 
 function PromptsSection() {
   return (
-    <section id="prompts" style={{ background:"#050505",color:"#fff",padding:"96px 56px" }}>
+    <section id="prompts" style={{ position:"relative",background:"#050505",color:"#fff",padding:"96px 56px",overflow:"hidden" }}>
+      <div style={{ position:"absolute",bottom:"-8%",right:"-4%",opacity:0.7 }}>
+        <ScrollSpin size={240} reverse />
+      </div>
       <div style={{ maxWidth:1152,margin:"0 auto" }}>
         <p style={{ fontSize:11,textTransform:"uppercase",letterSpacing:"0.3em",color:"#e8702a",fontWeight:600,marginBottom:16 }}>Prompt Library</p>
         <h2 style={{ fontSize:"clamp(32px,5vw,58px)",fontWeight:500,letterSpacing:"-0.06em",lineHeight:1,maxWidth:680,marginBottom:16 }}>Ready-to-use prompts for modern builders.</h2>
@@ -713,7 +741,10 @@ function WorkflowSection() {
 // ─── Access Section ───────────────────────────────────────────────────────────
 function AccessSection() {
   return (
-    <section style={{ background:"#050505",color:"#fff",padding:"64px 56px" }}>
+    <section style={{ position:"relative",background:"#050505",color:"#fff",padding:"64px 56px",overflow:"hidden" }}>
+      <div style={{ position:"absolute",top:"-10%",left:"50%",transform:"translateX(-50%)",opacity:0.5 }}>
+        <ScrollSpin size={260} accent="#ffffff" dim={0.35} />
+      </div>
       <div style={{ maxWidth:480,margin:"0 auto",textAlign:"center" }}>
         <p style={{ fontSize:11,textTransform:"uppercase",letterSpacing:"0.3em",color:"#e8702a",fontWeight:600,marginBottom:24 }}>Access Now</p>
         <div style={{ display:"flex",flexDirection:"column",gap:12 }}>
@@ -746,6 +777,9 @@ function CTASection() {
       <div style={{ maxWidth:960,margin:"0 auto" }}>
         <div style={{ position:"relative",overflow:"hidden",borderRadius:40,border:"1px solid rgba(255,255,255,0.10)",background:"rgba(255,255,255,0.05)",padding:"56px",textAlign:"center",backdropFilter:"blur(12px)" }}>
           <div style={{ position:"absolute",top:"50%",left:"50%",transform:"translate(-50%,-50%)",width:600,height:300,background:"radial-gradient(ellipse,rgba(232,112,42,0.18) 0%,transparent 70%)",pointerEvents:"none" }} />
+          <div style={{ position:"absolute",top:"50%",left:"50%",transform:"translate(-50%,-50%)",opacity:0.35 }}>
+            <ScrollSpin size={320} accent="#ffffff" dim={0.4} />
+          </div>
           <p style={{ position:"relative",fontSize:11,textTransform:"uppercase",letterSpacing:"0.3em",color:"#e8702a",fontWeight:600,marginBottom:20 }}>Build with Zae Labs</p>
           <h2 style={{ position:"relative",fontSize:"clamp(32px,5vw,58px)",fontWeight:500,letterSpacing:"-0.06em",lineHeight:0.95,marginBottom:24 }}>
             Get the prompts. Build the system. <span className="font-playfair">Launch</span> faster.
