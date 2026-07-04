@@ -532,16 +532,16 @@ function CertificationsSection() {
 
 // ─── Tools Collection ─────────────────────────────────────────────────────────
 const TOOLS = [
-  { name:"Database",        keyword:"vscode coding database",    href:"https://maszae-bit.github.io/Login-Zae-Group/",          icon:"🗄️" },
-  { name:"Github",          keyword:"github repo code",          href:"https://github.com/MasZae-BIT",                           icon:"🐙" },
-  { name:"Knowledge Hub",   keyword:"knowledge hub drive flask",  href:"https://drive.google.com/drive/u/1/folders/1rC5fnbguTs4TBfGauJ9_8HD-0uiyKKWg", icon:"🔬" },
-  { name:"Zae AI",          keyword:"chatgpt ai bot microchip",  href:"https://zae-ai.vercel.app/",                              icon:"🤖" },
-  { name:"Grammar Checker", keyword:"grammar checker english spell text", href:"https://grammar-checker-ashen.vercel.app/",       icon:"✅" },
-  { name:"Spotify",         keyword:"spotify music song playlist",href:"https://open.spotify.com/playlist/4T7MrNwyHzB3DwtzaIGFFn?si=ddabd6a078a64c0a", icon:"🎵" },
-  { name:"Discord",         keyword:"discord social chat",       href:"https://discord.gg/3JdWnYsV",                             icon:"💬" },
-  { name:"Instagram DL",    keyword:"instagram social media download", href:"https://maszae-bit.github.io/Instagram-Downloader/",icon:"📸" },
-  { name:"TikTok DL",       keyword:"tiktok video social download", href:"https://maszae-bit.github.io/Tiktok-Downloader/",      icon:"🎬" },
-  { name:"Journal Search",  keyword:"database sql journal search book", href:"https://maszae-bit.github.io/Journal/",            icon:"📚" },
+  { name:"Database",       keyword:"vscode coding database",     href:"https://maszae-bit.github.io/Login-Zae-Group/", icon:<FaDatabase/> },
+  { name:"Github",         keyword:"github repo code",           href:"https://github.com/MasZae-BIT", icon:<FaGithub/> },
+  { name:"Knowledge Hub",  keyword:"knowledge hub drive flask",  href:"https://drive.google.com/drive/u/1/folders/1rC5fnbguTs4TBfGauJ9_8HD-0uiyKKWg", icon:<FaMicroscope/> },
+  { name:"Zae AI",         keyword:"chatgpt ai bot microchip",   href:"https://zae-ai.vercel.app/", icon:<FaRobot/> },
+  { name:"Grammar Checker",keyword:"grammar checker english spell text", href:"https://grammar-checker-ashen.vercel.app/", icon:<FaCheckCircle/> },
+  { name:"Spotify",        keyword:"spotify music song playlist",href:"https://open.spotify.com/playlist/4T7MrNwyHzB3DwtzaIGFFn?si=ddabd6a078a64c0a", icon:<FaSpotify/> },
+  { name:"Discord",        keyword:"discord social chat",        href:"https://discord.gg/3JdWnYsV", icon:<FaDiscord/> },
+  { name:"Instagram DL",   keyword:"instagram social media download", href:"https://maszae-bit.github.io/Instagram-Downloader/", icon:<FaInstagram/> },
+  { name:"TikTok DL",      keyword:"tiktok video social download",   href:"https://maszae-bit.github.io/Tiktok-Downloader/", icon:<FaTiktok/> },
+  { name:"Journal Search", keyword:"database sql journal search book", href:"https://maszae-bit.github.io/Journal/", icon:<FaBook/> },
 ];
 
 function ToolsSection() {
@@ -572,7 +572,7 @@ function ToolsSection() {
           {filtered.map(({ name, href, icon }) => (
             <a key={name} href={href} target="_blank" rel="noopener noreferrer" className="tool-link-card">
               <div className="tool-card-inner" style={{ borderRadius:20,border:"1px solid rgba(255,255,255,0.10)",background:"rgba(15,15,15,0.60)",backdropFilter:"blur(10px)",height:150,display:"flex",flexDirection:"column",justifyContent:"center",alignItems:"center",gap:12,transition:"all 0.3s",cursor:"pointer" }}>
-                <span style={{ fontSize:36 }}>{icon}</span>
+                <span style={{ fontSize:36, color:"#e8702a" }}>{icon}</span>
                 <span style={{ fontSize:13,fontWeight:500,color:"rgba(255,255,255,0.80)",textAlign:"center" }}>{name}</span>
               </div>
             </a>
