@@ -80,6 +80,14 @@ const GLOBAL_CSS = `
   .nav-link-item { text-decoration:none; }
   .footer-link-item { text-decoration:none; }
   a { text-decoration:none; }
+
+  .scroll-deco { transition: opacity 0.3s ease; }
+  @media (max-width: 640px) {
+    .scroll-deco { transform: scale(0.5); }
+  }
+  @media (min-width: 641px) and (max-width: 1024px) {
+    .scroll-deco { transform: scale(0.75); }
+  }
 `;
 
 // ─── Logo ─────────────────────────────────────────────────────────────────────
@@ -95,7 +103,7 @@ function LogoIcon({ size = 26, fill = "#fff" }) {
 }
 
 // ─── Scroll-linked Rotating Object ─────────────────────────────────────────────
-function ScrollSpin({ size = 280, accent = "#e8702a", reverse = false, dim = 1 }) {
+function ScrollSpin({ size = 280, accent = "#e8702a", reverse = false, dim = 1, variant = "orbit" }) {
   const outerRef = useRef(null);
   const midRef = useRef(null);
   const rafRef = useRef(null);
@@ -119,25 +127,94 @@ function ScrollSpin({ size = 280, accent = "#e8702a", reverse = false, dim = 1 }
     };
   }, [reverse]);
 
-  return (
-    <div style={{ position:"relative", width:size, height:size, pointerEvents:"none", opacity:dim }}>
-      {/* Outer dashed ring — orbits one way */}
+  let shape;
+  if (variant === "diamond") {
+    shape = (
+      <>
+        <div ref={outerRef} style={{ position:"absolute", inset:0, willChange:"transform" }}>
+          <svg viewBox="0 0 200 200" width="100%" height="100%" fill="none">
+            <rect x="24" y="24" width="152" height="152" rx="16" transform="rotate(45 100 100)" stroke={accent} strokeOpacity="0.55" strokeWidth="1.6" strokeDasharray="5 11" />
+            <rect x="90" y="2" width="20" height="20" rx="4" fill={accent} fillOpacity="0.85" transform="rotate(45 100 12)" />
+          </svg>
+        </div>
+        <div ref={midRef} style={{ position:"absolute", inset:"20%", willChange:"transform" }}>
+          <svg viewBox="0 0 200 200" width="100%" height="100%" fill="none">
+            <rect x="14" y="14" width="172" height="172" rx="12" transform="rotate(45 100 100)" stroke="#fff" strokeOpacity="0.30" strokeWidth="1.3" />
+          </svg>
+        </div>
+      </>
+    );
+  } else if (variant === "triangle") {
+    shape = (
+      <>
+        <div ref={outerRef} style={{ position:"absolute", inset:0, willChange:"transform" }}>
+          <svg viewBox="0 0 200 200" width="100%" height="100%" fill="none">
+            <polygon points="100,6 189,176 11,176" stroke={accent} strokeOpacity="0.55" strokeWidth="1.6" strokeDasharray="4 10" strokeLinejoin="round" />
+            <circle cx="100" cy="6" r="5" fill={accent} fillOpacity="0.85" />
+          </svg>
+        </div>
+        <div ref={midRef} style={{ position:"absolute", inset:"22%", willChange:"transform" }}>
+          <svg viewBox="0 0 200 200" width="100%" height="100%" fill="none">
+            <polygon points="100,12 182,168 18,168" stroke="#fff" strokeOpacity="0.28" strokeWidth="1.3" strokeLinejoin="round" />
+          </svg>
+        </div>
+      </>
+    );
+  } else if (variant === "arc") {
+    shape = (
+      <>
+        <div ref={outerRef} style={{ position:"absolute", inset:0, willChange:"transform" }}>
+          <svg viewBox="0 0 200 200" width="100%" height="100%" fill="none">
+            <circle cx="100" cy="100" r="96" stroke={accent} strokeOpacity="0.6" strokeWidth="2.2" strokeDasharray="66 224" strokeLinecap="round" />
+            <circle cx="100" cy="100" r="68" stroke="#fff" strokeOpacity="0.22" strokeWidth="1.4" strokeDasharray="36 180" strokeLinecap="round" />
+          </svg>
+        </div>
+        <div ref={midRef} style={{ position:"absolute", inset:"14%", willChange:"transform" }}>
+          <svg viewBox="0 0 200 200" width="100%" height="100%" fill="none">
+            <circle cx="100" cy="100" r="96" stroke={accent} strokeOpacity="0.32" strokeWidth="1.2" strokeDasharray="16 26" />
+          </svg>
+        </div>
+      </>
+    );
+  } else if (variant === "grid") {
+    const pts = [30, 70, 110, 150, 170];
+    const dots = [];
+    pts.forEach((cy, r) => pts.forEach((cx, c) => {
+      if ((r + c) % 2 === 0) {
+        const key = `${r}-${c}`;
+        const big = (r + c) % 4 === 0;
+        dots.push(<circle key={key} cx={cx} cy={cy} r={big ? 3.6 : 1.9} fill={big ? accent : "#fff"} fillOpacity={big ? 0.85 : 0.32} />);
+      }
+    }));
+    shape = (
       <div ref={outerRef} style={{ position:"absolute", inset:0, willChange:"transform" }}>
-        <svg viewBox="0 0 200 200" width="100%" height="100%" fill="none">
-          <circle cx="100" cy="100" r="97" stroke={accent} strokeOpacity="0.30" strokeWidth="1" strokeDasharray="2 10" />
-          <circle cx="100" cy="3" r="4.6" fill={accent} fillOpacity="0.75" />
-          <circle cx="100" cy="197" r="2.4" fill="#fff" fillOpacity="0.30" />
-        </svg>
+        <svg viewBox="0 0 200 200" width="100%" height="100%" fill="none">{dots}</svg>
       </div>
-      {/* Middle solid ring — orbits opposite way, faster */}
-      <div ref={midRef} style={{ position:"absolute", inset:"16%", willChange:"transform" }}>
-        <svg viewBox="0 0 200 200" width="100%" height="100%" fill="none">
-          <circle cx="100" cy="100" r="97" stroke="#fff" strokeOpacity="0.15" strokeWidth="1" />
-          <circle cx="196" cy="100" r="3.4" fill={accent} fillOpacity="0.55" />
-        </svg>
-      </div>
-      {/* Static inner ring for depth */}
-      <div style={{ position:"absolute", inset:"36%", borderRadius:"50%", border:`1px solid ${accent}`, opacity:0.18 }} />
+    );
+  } else {
+    shape = (
+      <>
+        <div ref={outerRef} style={{ position:"absolute", inset:0, willChange:"transform" }}>
+          <svg viewBox="0 0 200 200" width="100%" height="100%" fill="none">
+            <circle cx="100" cy="100" r="97" stroke={accent} strokeOpacity="0.55" strokeWidth="1.6" strokeDasharray="3 11" />
+            <circle cx="100" cy="3" r="5.2" fill={accent} fillOpacity="0.9" />
+            <circle cx="100" cy="197" r="3.2" fill="#fff" fillOpacity="0.45" />
+          </svg>
+        </div>
+        <div ref={midRef} style={{ position:"absolute", inset:"16%", willChange:"transform" }}>
+          <svg viewBox="0 0 200 200" width="100%" height="100%" fill="none">
+            <circle cx="100" cy="100" r="97" stroke="#fff" strokeOpacity="0.28" strokeWidth="1.3" />
+            <circle cx="196" cy="100" r="4" fill={accent} fillOpacity="0.75" />
+          </svg>
+        </div>
+        <div style={{ position:"absolute", inset:"36%", borderRadius:"50%", border:`1px solid ${accent}`, opacity:0.32 }} />
+      </>
+    );
+  }
+
+  return (
+    <div className="scroll-deco" style={{ position:"relative", width:size, height:size, pointerEvents:"none", opacity:dim }}>
+      {shape}
     </div>
   );
 }
@@ -394,11 +471,11 @@ function PortfolioHero() {
 
   return (
     <section id="portfolio" style={{ position:"relative",background:"#000",color:"#fff",padding:"120px 56px 80px",minHeight:"100vh",display:"flex",alignItems:"center",overflow:"hidden" }}>
-      <div style={{ position:"absolute",top:"10%",left:"2%",opacity:0.7 }}>
-        <ScrollSpin size={180} reverse />
+      <div style={{ position:"absolute",top:"10%",left:"2%",opacity:0.85 }}>
+        <ScrollSpin size={180} reverse variant="orbit" />
       </div>
-      <div style={{ position:"absolute",bottom:"6%",right:"3%",opacity:0.6 }}>
-        <ScrollSpin size={140} accent="#ffffff" dim={0.5} />
+      <div style={{ position:"absolute",bottom:"6%",right:"3%",opacity:0.7 }}>
+        <ScrollSpin size={150} accent="#ffffff" dim={0.7} variant="triangle" />
       </div>
       <div id="portfolio-hero-trigger" style={{ maxWidth:1152,margin:"0 auto",width:"100%",display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(300px,1fr))",gap:64,alignItems:"center" }}>
         {/* Left text */}
@@ -446,7 +523,7 @@ function AboutSection() {
     <section id="about" style={{ position:"relative",background:"#050505",color:"#fff",padding:"96px 56px",overflow:"hidden" }}>
       <div style={{ position:"absolute",top:-128,right:-128,width:420,height:420,background:"rgba(232,112,42,0.18)",filter:"blur(120px)",borderRadius:"50%",pointerEvents:"none" }} />
       <div style={{ position:"absolute",top:"8%",right:"4%",opacity:0.9 }}>
-        <ScrollSpin size={220} />
+        <ScrollSpin size={220} variant="diamond" />
       </div>
       <div style={{ maxWidth:1152,margin:"0 auto",display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(300px,1fr))",gap:64,alignItems:"start" }}>
         <div>
@@ -501,7 +578,7 @@ function ExperienceSection() {
     <section id="experience" style={{ position:"relative",background:"#000",color:"#fff",padding:"96px 56px",overflow:"hidden" }}>
       <div style={{ position:"absolute",bottom:-80,left:-80,width:360,height:360,background:"rgba(232,112,42,0.10)",filter:"blur(100px)",borderRadius:"50%",pointerEvents:"none" }} />
       <div style={{ position:"absolute",top:"6%",right:"-5%",opacity:0.75 }}>
-        <ScrollSpin size={230} reverse />
+        <ScrollSpin size={230} reverse variant="arc" />
       </div>
       <div style={{ maxWidth:1152,margin:"0 auto" }}>
         <p style={{ fontSize:11,textTransform:"uppercase",letterSpacing:"0.3em",color:"#e8702a",fontWeight:600,marginBottom:16 }}>Experience</p>
@@ -581,7 +658,7 @@ function CertificationsSection() {
   return (
     <section style={{ position:"relative",background:"#050505",color:"#fff",padding:"96px 56px",overflow:"hidden" }}>
       <div style={{ position:"absolute",top:"20%",right:"-6%",opacity:0.8 }}>
-        <ScrollSpin size={200} />
+        <ScrollSpin size={200} variant="grid" />
       </div>
       <div style={{ maxWidth:1152,margin:"0 auto" }}>
         <p style={{ fontSize:11,textTransform:"uppercase",letterSpacing:"0.3em",color:"#e8702a",fontWeight:600,marginBottom:16 }}>Certifications</p>
@@ -619,7 +696,7 @@ function ToolsSection() {
   return (
     <section id="tools" style={{ position:"relative",background:"#000",color:"#fff",padding:"96px 56px",overflow:"hidden" }}>
       <div style={{ position:"absolute",top:"4%",left:"-4%",opacity:0.6 }}>
-        <ScrollSpin size={200} accent="#ffffff" dim={0.45} />
+        <ScrollSpin size={200} accent="#ffffff" dim={0.7} reverse variant="triangle" />
       </div>
       <div style={{ maxWidth:1152,margin:"0 auto" }}>
         {/* Header */}
@@ -680,7 +757,7 @@ function PromptsSection() {
   return (
     <section id="prompts" style={{ position:"relative",background:"#050505",color:"#fff",padding:"96px 56px",overflow:"hidden" }}>
       <div style={{ position:"absolute",bottom:"-8%",right:"-4%",opacity:0.7 }}>
-        <ScrollSpin size={240} reverse />
+        <ScrollSpin size={240} reverse variant="orbit" />
       </div>
       <div style={{ maxWidth:1152,margin:"0 auto" }}>
         <p style={{ fontSize:11,textTransform:"uppercase",letterSpacing:"0.3em",color:"#e8702a",fontWeight:600,marginBottom:16 }}>Prompt Library</p>
@@ -707,7 +784,7 @@ function WorkflowSection() {
   return (
     <section id="workflow" style={{ position:"relative",background:"#000",color:"#fff",padding:"96px 56px",overflow:"hidden" }}>
       <div style={{ position:"absolute",bottom:"-6%",left:"-4%",opacity:0.85 }}>
-        <ScrollSpin size={260} />
+        <ScrollSpin size={260} reverse variant="diamond" />
       </div>
       <div style={{ maxWidth:1152,margin:"0 auto",display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(300px,1fr))",gap:64,alignItems:"center" }}>
         <div>
@@ -743,7 +820,7 @@ function AccessSection() {
   return (
     <section style={{ position:"relative",background:"#050505",color:"#fff",padding:"64px 56px",overflow:"hidden" }}>
       <div style={{ position:"absolute",top:"-10%",left:"50%",transform:"translateX(-50%)",opacity:0.5 }}>
-        <ScrollSpin size={260} accent="#ffffff" dim={0.35} />
+        <ScrollSpin size={260} accent="#ffffff" dim={0.55} variant="grid" />
       </div>
       <div style={{ maxWidth:480,margin:"0 auto",textAlign:"center" }}>
         <p style={{ fontSize:11,textTransform:"uppercase",letterSpacing:"0.3em",color:"#e8702a",fontWeight:600,marginBottom:24 }}>Access Now</p>
@@ -778,7 +855,7 @@ function CTASection() {
         <div style={{ position:"relative",overflow:"hidden",borderRadius:40,border:"1px solid rgba(255,255,255,0.10)",background:"rgba(255,255,255,0.05)",padding:"56px",textAlign:"center",backdropFilter:"blur(12px)" }}>
           <div style={{ position:"absolute",top:"50%",left:"50%",transform:"translate(-50%,-50%)",width:600,height:300,background:"radial-gradient(ellipse,rgba(232,112,42,0.18) 0%,transparent 70%)",pointerEvents:"none" }} />
           <div style={{ position:"absolute",top:"50%",left:"50%",transform:"translate(-50%,-50%)",opacity:0.35 }}>
-            <ScrollSpin size={320} accent="#ffffff" dim={0.4} />
+            <ScrollSpin size={320} accent="#ffffff" dim={0.5} variant="arc" />
           </div>
           <p style={{ position:"relative",fontSize:11,textTransform:"uppercase",letterSpacing:"0.3em",color:"#e8702a",fontWeight:600,marginBottom:20 }}>Build with Zae Labs</p>
           <h2 style={{ position:"relative",fontSize:"clamp(32px,5vw,58px)",fontWeight:500,letterSpacing:"-0.06em",lineHeight:0.95,marginBottom:24 }}>
