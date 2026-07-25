@@ -1542,7 +1542,7 @@ const CHATGPT_PROMPTS = [
   {
     Icon: Code2,
     title: "Web Prompts",
-    desc: "This prompt specifies a dark, cinematic landing page for a creative studio called "Prisma," built with React + Vite + TypeScript + Tailwind CSS. It has three sections — a full-screen video Hero with animated giant title text, an About section with scroll-linked text reveal, and a Features section with four animated cards (one video, three checklist-style) — all styled with a warm cream-on-black color palette, custom Google Fonts, noise-texture overlays, and framer-motion animations throughout.",
+    desc: 'This prompt specifies a dark, cinematic landing page for a creative studio called "Prisma," built with React + Vite + TypeScript + Tailwind CSS. It has three sections — a full-screen video Hero with animated giant title text, an About section with scroll-linked text reveal, and a Features section with four animated cards (one video, three checklist-style) — all styled with a warm cream-on-black color palette, custom Google Fonts, noise-texture overlays, and framer-motion animations throughout.',
     pill: "Get Prompt",
     prompt: `Create a React + Vite + TypeScript + Tailwind CSS landing page for a creative studio called "Prisma". The page has 3 sections: Hero, About, and Features. Use framer-motion for animations and lucide-react for icons. The design is dark, moody, and cinematic with a warm cream color palette.
 
@@ -1672,7 +1672,7 @@ lucide-react (ArrowRight, Check icons)`,
   {
     Icon: Code2,
     title: "Web Prompts",
-    desc: "This is a spec for a full-screen dark hero section (deep blue-purple background) with a looping fade-in/fade-out background video controlled via requestAnimationFrame, a navbar with dropdown nav items and a "Sign Up" button, a huge "Power AI" headline (with "AI" in an indigo-purple-amber gradient), a subtitle and "Schedule a Consult" CTA, and an infinite-scrolling logo marquee at the bottom showcasing brand names with liquid-glass icon styling.",
+    desc: 'This is a spec for a full-screen dark hero section (deep blue-purple background) with a looping fade-in/fade-out background video controlled via requestAnimationFrame, a navbar with dropdown nav items and a "Sign Up" button, a huge "Power AI" headline (with "AI" in an indigo-purple-amber gradient), a subtitle and "Schedule a Consult" CTA, and an infinite-scrolling logo marquee at the bottom showcasing brand names with liquid-glass icon styling.',
     pill: "Get Prompt",
     prompt: `Create a full-screen dark hero section with a looping background video, navbar, headline, subtitle, CTA button, and a logo marquee at the bottom. Here are the exact specifications:
 
@@ -1728,7 +1728,7 @@ Section structure: min-h-screen flex flex-col — navbar at top, content centere
   {
     Icon: Code2,
     title: "Liquid Glass",
-    desc: "This is a task spec for integrating a pre-built "Liquid Glass" React component (a macOS-style frosted-glass dock/button UI with an SVG distortion filter) into an existing shadcn/Tailwind/TypeScript codebase. It includes the full component code, setup instructions to verify or install shadcn/Tailwind/TypeScript if missing, the exact file paths to copy the code into, required CSS keyframes to add, and a checklist for installing dependencies, sourcing image assets, and using lucide-react icons.",
+    desc: 'This is a task spec for integrating a pre-built "Liquid Glass" React component (a macOS-style frosted-glass dock/button UI with an SVG distortion filter) into an existing shadcn/Tailwind/TypeScript codebase. It includes the full component code, setup instructions to verify or install shadcn/Tailwind/TypeScript if missing, the exact file paths to copy the code into, required CSS keyframes to add, and a checklist for installing dependencies, sourcing image assets, and using lucide-react icons.',
     pill: "Get Prompt",
     prompt: `You are given a task to integrate an existing React component in the codebase
 
@@ -1742,7 +1742,7 @@ If it doesn't, provide instructions on how to setup project via shadcn CLI, inst
 Determine the default path for components and styles. 
 If default path for components is not /components/ui, provide instructions on why it's important to create this folder
 Copy-paste this component to /components/ui folder:
-```tsx
+\`\`\`tsx
 liquid-glass.tsx
 "use client";
 
@@ -1779,7 +1779,7 @@ const GlassEffect: React.FC<GlassEffectProps> = ({
 
   const content = (
     <div
-      className={`relative flex font-semibold overflow-hidden text-black cursor-pointer transition-all duration-700 ${className}`}
+      className={\`relative flex font-semibold overflow-hidden text-black cursor-pointer transition-all duration-700 \${className}\`}
       style={glassStyle}
     >
       {/* Glass Layers */}
@@ -1950,7 +1950,7 @@ export const Component = () => {
     <div
       className="min-h-screen h-full flex items-center justify-center font-light relative overflow-hidden w-full"
       style={{
-        background: `url("https://images.unsplash.com/photo-1432251407527-504a6b4174a2?q=80&w=1480&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D") center center`,
+        background: \`url("https://images.unsplash.com/photo-1432251407527-504a6b4174a2?q=80&w=1480&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D") center center\`,
         animation: "moveBackground 60s linear infinite",
       }}
     >
@@ -1980,10 +1980,10 @@ const DemoOne = () => {
 
 export { DemoOne };
 
-```
+\`\`\`
 
 Extend existing Tailwind 4 index.css with this code (or if project uses Tailwind 3, extend tailwind.config.js or globals.css):
-```css
+\`\`\`css
 @import "tailwindcss";
 @import "tw-animate-css";
 
@@ -1996,7 +1996,7 @@ Extend existing Tailwind 4 index.css with this code (or if project uses Tailwind
     background-position: 0% -1000%;
   }
 }
-```
+\`\`\`
 
 Implementation Guidelines
  1. Analyze the component structure and identify all required dependencies
