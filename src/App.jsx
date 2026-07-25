@@ -1076,7 +1076,9 @@ void loop() {
     desc: "Learn how to accurately measure distance and detect objects using the HC-SR04 ultrasonic sensor with Arduino.",
     pill: "Get Code",
     image: "/Distance.png",
-    code: `#include <LiquidCrystal_I2C.h>
+    code: `//code by ZaeLabs
+
+#include <LiquidCrystal_I2C.h>
 LiquidCrystal_I2C lcd(0x27, 16, 2);
 const int greenLed = 5;
 const int yellowLed = 6;
@@ -1150,12 +1152,152 @@ void loop() {
 }`,
   },
   {
-    Icon: Video,
-    title: "Content Creation Prompts",
-    desc: "Prompt systems for Reels, Shorts, carousel posts, hooks, scripts, and content calendars.",
-    pill: "Social Media",
-    image: "https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?w=960&h=540&fit=crop&q=80",
-    code: `// GANTI dengan kode Wokwi kamu\n#include <Arduino.h>\n#include <DHT.h>\n\n#define DHTPIN 2\n#define DHTTYPE DHT22\nDHT dht(DHTPIN, DHTTYPE);\n\nvoid setup() {\n  Serial.begin(9600);\n  dht.begin();\n}\n\nvoid loop() {\n  float t = dht.readTemperature();\n  float h = dht.readHumidity();\n  Serial.print("Temp: "); Serial.print(t);\n  Serial.print(" Hum: "); Serial.println(h);\n  delay(2000);\n}`,
+    Icon: Code2,
+    title: "Traffic Light With Push Button",
+    desc: "Build an interactive traffic light system with a pedestrian crosswalk button using Arduino.",
+    pill: "Get Code",
+    image: "/Traffict.png",
+    code: `//code by ZaeLabs
+
+#include <Wire.h>
+#include <Adafruit_GFX.h>
+#include <Adafruit_SSD1306.h>
+
+#define SCREEN_WIDTH 128
+#define SCREEN_HEIGHT 64
+Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, -1);
+
+String oled_last = ""; 
+
+int sinal_pedestre[2] = { A1, A0 };     
+int sinal_carros[3]   = { A2, A3, A4 }; 
+
+byte botao = 7;
+
+unsigned long t_0;
+unsigned long t_1;
+unsigned int safe_time;
+unsigned int min_green = 4000; 
+unsigned int total_green = 8000; 
+
+int disp[10][8] = {
+  { 0, 1, 1, 1, 1, 1, 1, 0 }, 
+  { 0, 1, 0, 0, 1, 0, 0, 0 }, 
+  { 0, 0, 1, 1, 1, 1, 0, 1 }, 
+  { 0, 1, 1, 0, 1, 1, 0, 1 }, 
+  { 0, 1, 0, 0, 1, 0, 1, 1 }, 
+  { 0, 1, 1, 0, 0, 1, 1, 1 }, 
+  { 0, 1, 1, 1, 0, 1, 1, 1 }, 
+  { 0, 1, 0, 0, 1, 1, 0, 0 }, 
+  { 0, 1, 1, 1, 1, 1, 1, 1 }, 
+  { 0, 1, 1, 0, 1, 1, 1, 1 }  
+};
+
+void setup() {
+  for (int i = 2; i < 9; i++) pinMode(i, OUTPUT);
+  for (int i = A0; i <= A4; i++) pinMode(i, OUTPUT);
+
+  pinMode(botao, INPUT_PULLUP);
+
+  if (!display.begin(SSD1306_SWITCHCAPVCC, 0x3C)) {
+    while (1); 
+  }
+  display.clearDisplay();
+  display.display();
+
+  t_0 = millis();
+}
+
+void loop() {
+  number_display(5);
+  oled_message("STOP");
+
+  digitalWrite(sinal_carros[2], HIGH);
+  digitalWrite(sinal_pedestre[0], HIGH);
+
+  t_0 = millis();
+  bool requested = false;
+
+  while (true) {
+    if (digitalRead(botao) == LOW) {
+      delay(30); 
+      if (digitalRead(botao) == LOW) requested = true;
+    }
+
+    t_1 = millis();
+
+    if (requested && (t_1 - t_0) >= min_green) break;
+  }
+
+  safe_time = t_1 - t_0;
+  if (safe_time > total_green) safe_time = total_green;
+
+  delay(total_green - safe_time);
+
+  digitalWrite(sinal_carros[2], LOW);
+  digitalWrite(sinal_carros[1], HIGH);
+  oled_message("SIAP-SIAP");
+  delay(2500);
+
+  digitalWrite(sinal_carros[1], LOW);
+  digitalWrite(sinal_carros[0], HIGH);
+  digitalWrite(sinal_pedestre[0], LOW);
+  digitalWrite(sinal_pedestre[1], HIGH);
+  oled_message("JALAN");
+
+  unsigned long walk_start = millis();
+  while (millis() - walk_start < 5000) {
+    idle_display();
+  }
+
+  for (int k = 9; k > 0; k--) {
+    number_display(k);
+    oled_message("STOP " + String(k));
+    delay(1000);
+  }
+
+  digitalWrite(sinal_carros[0], LOW);
+  digitalWrite(sinal_pedestre[1], LOW);
+  clear_number_display();
+}
+
+void number_display(int m) {
+  for (int j = 2; j < 9; j++) {
+    digitalWrite(j, disp[m][j - 1]);
+  }
+}
+
+void clear_number_display() {
+  for (int i = 2; i < 9; i++) {
+    digitalWrite(i, 0);
+  }
+}
+
+void idle_display() {
+  clear_number_display();
+  digitalWrite(3, 1);
+  delay(150);
+  digitalWrite(3, 0);
+  digitalWrite(8, 1);
+  delay(150);
+  digitalWrite(8, 0);
+  digitalWrite(6, 1);
+  delay(150);
+  digitalWrite(6, 0);
+  delay(150);
+}
+
+void oled_message(String msg) {
+  if (msg == oled_last) return;
+  oled_last = msg;
+  display.clearDisplay();
+  display.setTextSize(2);
+  display.setTextColor(SSD1306_WHITE);
+  display.setCursor(10, 20);
+  display.println(msg);
+  display.display();
+}
+`,
   },
   {
     Icon: Zap,
