@@ -513,12 +513,12 @@ function PortfolioHero() {
           </h3>
           <p style={{ fontSize:15,color:"rgba(255,255,255,0.65)",lineHeight:1.8,minHeight:80,maxWidth:520,marginBottom:36 }}>{typed}<span style={{ opacity:0.5 }}>|</span></p>
           <div style={{ display:"flex",gap:12,flexWrap:"wrap" }}>
-            <a href="#experience" style={{ display:"inline-flex",alignItems:"center",gap:10,padding:"13px 26px",background:"rgba(255,255,255,0.05)",border:"1px solid rgba(255,255,255,0.20)",color:"#fff",borderRadius:9999,fontSize:14,fontWeight:500,transition:"all 0.3s" }}
+            <a href="#experience" style={{ display:"inline-flex",alignItems:"center",gap:10,padding:"13px 26px",background:"rgba(255,255,255,0.07)",border:"1px solid rgba(255,255,255,0.20)",color:"#fff",borderRadius:9999,fontSize:14,fontWeight:500,transition:"all 0.3s",backdropFilter:"blur(20px) saturate(180%)",WebkitBackdropFilter:"blur(20px) saturate(180%)" }}
               onMouseEnter={e => { e.currentTarget.style.background="#fff"; e.currentTarget.style.color="#000"; e.currentTarget.style.borderColor="#fff"; }}
               onMouseLeave={e => { e.currentTarget.style.background="rgba(255,255,255,0.05)"; e.currentTarget.style.color="#fff"; e.currentTarget.style.borderColor="rgba(255,255,255,0.20)"; }}>
               <GraduationCap size={16} /> Get to Know Me
             </a>
-            <a href="#tools" style={{ display:"inline-flex",alignItems:"center",gap:10,padding:"13px 26px",background:"rgba(232,112,42,0.10)",border:"1px solid rgba(232,112,42,0.35)",color:"#e8702a",borderRadius:9999,fontSize:14,fontWeight:500,transition:"all 0.3s" }}
+            <a href="#tools" style={{ display:"inline-flex",alignItems:"center",gap:10,padding:"13px 26px",background:"rgba(232,112,42,0.14)",border:"1px solid rgba(232,112,42,0.35)",color:"#e8702a",borderRadius:9999,fontSize:14,fontWeight:500,transition:"all 0.3s",backdropFilter:"blur(20px) saturate(180%)",WebkitBackdropFilter:"blur(20px) saturate(180%)" }}
               onMouseEnter={e => { e.currentTarget.style.background="#e8702a"; e.currentTarget.style.color="#fff"; e.currentTarget.style.borderColor="#e8702a"; }}
               onMouseLeave={e => { e.currentTarget.style.background="rgba(232,112,42,0.10)"; e.currentTarget.style.color="#e8702a"; e.currentTarget.style.borderColor="rgba(232,112,42,0.35)"; }}>
               <Wrench size={16} /> My Tools
@@ -555,7 +555,7 @@ function PortfolioHero() {
 function AboutSection() {
   return (
     <section id="about" style={{ position:"relative",background:"#050505",color:"#fff",padding:"96px 56px",overflow:"hidden" }}>
-      <div style={{ position:"absolute",top:0,right:0,width:"70%",height:"85%",background:"radial-gradient(circle at top right, rgba(232,112,42,0.38) 0%, rgba(232,112,42,0.16) 40%, rgba(232,112,42,0) 72%)",pointerEvents:"none" }} />
+      <div style={{ position:"absolute",top:-260,right:-260,width:700,height:700,background:"radial-gradient(circle at center, rgba(232,112,42,0.35) 0%, rgba(232,112,42,0.14) 30%, rgba(232,112,42,0) 65%)",pointerEvents:"none" }} />
       <div style={{ position:"absolute",top:"8%",right:"4%",opacity:0.9 }}>
         <ScrollSpin size={220} variant="diamond" />
       </div>
@@ -572,7 +572,7 @@ function AboutSection() {
           </p>
           <div style={{ display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:12 }}>
             {[{ num:"100+",label:"AI experiments" },{ num:"50+",label:"Prompt systems" },{ num:"10+",label:"Web builds" }].map(({ num, label }) => (
-              <div key={label} style={{ borderRadius:24,border:"1px solid rgba(255,255,255,0.10)",background:"rgba(255,255,255,0.04)",padding:20,backdropFilter:"blur(12px)" }}>
+              <div key={label} className="glass-panel" style={{ borderRadius:24,border:"1px solid rgba(255,255,255,0.18)",background:"rgba(255,255,255,0.07)",padding:20,backdropFilter:"blur(20px) saturate(180%)",WebkitBackdropFilter:"blur(20px) saturate(180%)",boxShadow:"0 4px 24px rgba(0,0,0,0.20), inset 0 1px 0 rgba(255,255,255,0.12)" }}>
                 <p style={{ fontSize:"clamp(22px,3vw,28px)",fontWeight:600 }}>{num}</p>
                 <p style={{ fontSize:13,color:"rgba(255,255,255,0.50)",marginTop:4 }}>{label}</p>
               </div>
@@ -611,7 +611,7 @@ function ExperienceCard({ title, org, period, desc }) {
 function ExperienceSection() {
   return (
     <section id="experience" style={{ position:"relative",background:"#000",color:"#fff",padding:"96px 56px",overflow:"hidden" }}>
-      <div style={{ position:"absolute",bottom:0,left:0,width:"65%",height:"75%",background:"radial-gradient(circle at bottom left, rgba(232,112,42,0.30) 0%, rgba(232,112,42,0.10) 40%, rgba(232,112,42,0) 72%)",pointerEvents:"none" }} />
+      <div style={{ position:"absolute",bottom:-260,left:-260,width:700,height:700,background:"radial-gradient(circle at center, rgba(232,112,42,0.30) 0%, rgba(232,112,42,0.12) 30%, rgba(232,112,42,0) 65%)",pointerEvents:"none" }} />
       <div style={{ position:"absolute",top:"6%",right:"-5%",opacity:0.75 }}>
         <ScrollSpin size={230} reverse variant="arc" />
       </div>
@@ -779,7 +779,8 @@ function PromptCard({ Icon, title, desc, pill }) {
   const [h, setH] = useState(false);
   return (
     <div onMouseEnter={()=>setH(true)} onMouseLeave={()=>setH(false)}
-      style={{ borderRadius:32,border:h?"1px solid rgba(232,112,42,0.40)":"1px solid rgba(255,255,255,0.10)",background:h?"rgba(255,255,255,0.07)":"rgba(255,255,255,0.04)",padding:24,backdropFilter:"blur(12px)",transition:"all 0.3s",transform:h?"translateY(-4px)":"translateY(0)",cursor:"default" }}>
+      className="glass-panel"
+      style={{ borderRadius:32,border:h?"1px solid rgba(232,112,42,0.40)":"1px solid rgba(255,255,255,0.18)",background:h?"rgba(255,255,255,0.12)":"rgba(255,255,255,0.07)",padding:24,backdropFilter:"blur(20px) saturate(180%)",WebkitBackdropFilter:"blur(20px) saturate(180%)",boxShadow:h?"0 8px 32px rgba(0,0,0,0.30), inset 0 1px 0 rgba(255,255,255,0.20)":"0 4px 24px rgba(0,0,0,0.20), inset 0 1px 0 rgba(255,255,255,0.12)",transition:"all 0.3s",transform:h?"translateY(-4px)":"translateY(0)",cursor:"default" }}>
       <div style={{ width:44,height:44,borderRadius:"50%",background:"rgba(232,112,42,0.15)",color:"#e8702a",display:"flex",alignItems:"center",justifyContent:"center",marginBottom:24 }}><Icon size={20}/></div>
       <p style={{ fontSize:17,fontWeight:600,letterSpacing:"-0.03em" }}>{title}</p>
       <p style={{ fontSize:14,color:"rgba(255,255,255,0.60)",lineHeight:1.6,marginTop:12 }}>{desc}</p>
