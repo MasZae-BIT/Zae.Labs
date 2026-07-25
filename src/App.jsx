@@ -488,10 +488,12 @@ function HeroSection({ unlocked, setUnlocked }) {
       {/* Heading */}
       <div style={{ position:"absolute",top:"14%",left:0,right:0,display:"flex",flexDirection:"column",alignItems:"center",textAlign:"center",padding:"0 20px",pointerEvents:"none",zIndex:50 }}>
         <h1 style={{ color:"#fff",lineHeight:0.95,margin:0 }}>
-          <span className="hero-anim hero-reveal font-playfair" style={{ display:"block",fontSize:"clamp(48px,8vw,96px)",fontWeight:400,letterSpacing:"-0.05em",animationDelay:"0.25s" }}>The process</span>
-          <span className="hero-anim hero-reveal" style={{ display:"block",fontSize:"clamp(48px,8vw,96px)",fontWeight:400,letterSpacing:"-0.08em",marginTop:"-4px",animationDelay:"0.42s" }}>never lies.</span>
+          <span className="hero-anim hero-reveal" style={{ display:"block",fontSize:"clamp(56px,10vw,128px)",fontWeight:700,letterSpacing:"-0.05em",animationDelay:"0.25s" }}>Zae Labs<span className="font-playfair" style={{ fontWeight:400 }}>.</span></span>
         </h1>
-        <span className="hero-anim hero-fade" style={{ display:"block",marginTop:20,fontSize:"clamp(14px,1.8vw,18px)",color:"rgba(255,255,255,0.55)",letterSpacing:"0.01em",animationDelay:"0.55s",pointerEvents:"none" }}>
+        <span className="hero-anim hero-fade" style={{ display:"block",marginTop:20,fontSize:"clamp(16px,2.2vw,22px)",color:"rgba(255,255,255,0.80)",fontWeight:600,letterSpacing:"-0.01em",animationDelay:"0.42s",pointerEvents:"none" }}>
+          Ideas engineered into real digital products.
+        </span>
+        <span className="hero-anim hero-fade" style={{ display:"block",marginTop:10,fontSize:"clamp(13px,1.6vw,16px)",color:"rgba(255,255,255,0.50)",letterSpacing:"0.01em",animationDelay:"0.55s",pointerEvents:"none" }}>
           Do your best today.
         </span>
       </div>
@@ -2014,6 +2016,13 @@ Steps to integrate
  1. Install external dependencies
  2. Fill image assets with Unsplash stock images you know exist
  3. Use lucide-react icons for svgs or logos if component requires them`,
+  },
+  {
+    Icon: Code2,
+    title: "Productivity Prompts",
+    desc: "Prompts to organize ideas, build learning plans, summarize resources, and execute faster.",
+    pill: "Get Prompt",
+    prompt: `GANTI dengan prompt ChatGPT kamu untuk Productivity.\n\nContoh struktur:\nRole: Kamu adalah personal productivity coach.\nGoal: [target belajar/kerja]\nTimeframe: [durasi]\nOutput format: rencana harian/mingguan + checklist prioritas.`,
   },
 ];
 
