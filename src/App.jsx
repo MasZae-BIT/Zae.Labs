@@ -7,7 +7,7 @@ const BG_IMAGE_1 =
   "https://images.higgs.ai/?default=1&output=webp&url=https%3A%2F%2Fd8j0ntlcm91z4.cloudfront.net%2Fuser_38xzZboKViGWJOttwIXH07lWA1P%2Fhf_20260609_195923_b0ba8ace-1d1d-4f2c-9a28-1ab84b330680.png&w=1280&q=85";
 const BG_IMAGE_2 =
   "https://images.higgs.ai/?default=1&output=webp&url=https%3A%2F%2Fd8j0ntlcm91z4.cloudfront.net%2Fuser_38xzZboKViGWJOttwIXH07lWA1P%2Fhf_20260609_201152_bba90a12-bf12-459f-91f0-51f237dbaf3b.png&w=1280&q=85";
-const PROFILE_PHOTO = "https://instagram.fcgk32-1.fna.fbcdn.net/v/t51.82787-15/659592455_18112837321689596_351421020188487837_n.webp?_nc_cat=101&ig_cache_key=Mzg2Nzk3NTUwNzI4Mzk3NzY4MA%3D%3D.3-ccb7-5&ccb=7-5&_nc_sid=58cdad&efg=eyJ2ZW5jb2RlX3RhZyI6InhwaWRzLjE0NDB4MTkyMC5zZHIuQzMifQ%3D%3D&_nc_ohc=tF_fdwFdNuEQ7kNvwE_A047&_nc_oc=Ado09678_JFvuIAjICGSfJBpR_82cijS2WmOQtrA0XafdbHm6W7yVacTUX7IAmGuRBQ&_nc_ad=z-m&_nc_cid=0&_nc_zt=23&_nc_ht=instagram.fcgk32-1.fna&_nc_gid=EY39F15DxzX6dlGEeAzPIQ&_nc_ss=7a32e&oh=00_Af3h_YUTEvLuIB8cyUKv6jdN_lDP5ilw_RAzebfBVTsH9A&oe=69E6AD76";
+const PROFILE_PHOTO = "https://github.com/MasZae-BIT/Zae.Labs/blob/f9ab83ee7d0a8c610f9103c75b05a5cc4d7f195c/public/Zae.jpg";
 
 const SPOTLIGHT_R = 260;
 
