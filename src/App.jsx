@@ -1300,12 +1300,106 @@ void oled_message(String msg) {
 `,
   },
   {
-    Icon: Zap,
-    title: "Productivity Prompts",
-    desc: "Prompts to organize ideas, build learning plans, summarize resources, and execute faster.",
-    pill: "Daily System",
-    image: "https://images.unsplash.com/photo-1517077304055-6e89abbf09b0?w=960&h=540&fit=crop&q=80",
-    code: `// GANTI dengan kode Wokwi kamu\n#include <Arduino.h>\n#include <Servo.h>\n\nServo myServo;\n\nvoid setup() {\n  myServo.attach(9);\n}\n\nvoid loop() {\n  for (int pos = 0; pos <= 180; pos++) {\n    myServo.write(pos);\n    delay(10);\n  }\n  for (int pos = 180; pos >= 0; pos--) {\n    myServo.write(pos);\n    delay(10);\n  }\n}`,
+    Icon: Code2,
+    title: "Earthquake Detection Using ESP32",
+    desc: "Create a smart IoT earthquake detector with ESP32 that monitors seismic vibrations and sends real-time alerts.",
+    pill: "Get Code",
+    image: "Earthquake.png",
+    code: `//code by ZaeLabs
+
+#include <Adafruit_MPU6050.h>
+#include <Adafruit_Sensor.h>
+#include <Wire.h>
+
+Adafruit_MPU6050 mpu;
+
+float Scala_richter = 0;
+
+#define THINGER_SERIAL_DEBUG
+
+#include <ThingerESP32.h>
+
+#define USERNAME "ZaeLabs"
+#define DEVICE_ID "Earthquake"
+#define DEVICE_CREDENTIAL "xxxxxxxxxxx"
+
+#define SSID "Wokwi-GUEST"
+#define SSID_PASSWORD "xxxxxxxxxxx"
+
+ThingerESP32 thing(USERNAME, DEVICE_ID, DEVICE_CREDENTIAL);
+
+
+void setup(void) {
+  Serial.begin(115200);
+  pinMode(19, OUTPUT);
+  pinMode(18, OUTPUT);
+  pinMode(5, OUTPUT);
+  while (!mpu.begin()) {
+    Serial.println("MPU6050 not connected!");
+    delay(1000);
+  }
+  Serial.println("MPU6050 ready!");
+  thing.add_wifi(SSID, SSID_PASSWORD);
+}
+
+sensors_event_t event;
+
+void loop() {
+  thing["valueSR"] >> outputValue(ScalaRichter());
+
+  beeb();
+  thing.handle();
+}
+
+float ScalaRichter(){
+  mpu.getAccelerometerSensor()->getEvent(&event);
+  float yKuadrat = event.acceleration.y * event.acceleration.y; 
+  float xKuadrat = event.acceleration.x * event.acceleration.x;
+  Scala_richter = sqrt(yKuadrat + xKuadrat);
+
+  return Scala_richter;
+}
+
+void beeb(){
+  float valueSR = ScalaRichter();
+  Serial.print(valueSR);
+  Serial.println(" Magnitude");
+  if(event.acceleration.y >= 0 && event.acceleration.x >= 0){
+    if(valueSR <= 0){
+      tone(26, 0);
+    }else if(valueSR > 0 && valueSR <= 3){
+      tone(26, 500);
+      digitalWrite(19, HIGH);
+      delay(1000);
+      noTone(26);
+      digitalWrite(19, LOW);
+      delay(1000);
+    }else if(valueSR > 3 && valueSR <= 4.5){
+      tone(26, 500);
+      digitalWrite(18, HIGH);
+      delay(500);
+      noTone(26);
+      digitalWrite(18, LOW);
+      delay(500);
+    }else if(valueSR > 4.5 && valueSR <= 6){
+      tone(26, 500);
+      digitalWrite(18, HIGH);
+      delay(250);
+      noTone(26);
+      digitalWrite(18, LOW);
+      delay(250);
+    }else if(valueSR > 6){
+      tone(26, 500);
+      digitalWrite(5, HIGH);
+      delay(100);
+      noTone(26);
+      digitalWrite(5, LOW);
+      delay(100);
+    }
+  }else{
+    tone(26, 0);
+  }
+}`,
   },
 ];
 
