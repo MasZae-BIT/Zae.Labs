@@ -7,7 +7,7 @@ const BG_IMAGE_1 =
   "https://images.higgs.ai/?default=1&output=webp&url=https%3A%2F%2Fd8j0ntlcm91z4.cloudfront.net%2Fuser_38xzZboKViGWJOttwIXH07lWA1P%2Fhf_20260609_195923_b0ba8ace-1d1d-4f2c-9a28-1ab84b330680.png&w=1280&q=85";
 const BG_IMAGE_2 =
   "https://images.higgs.ai/?default=1&output=webp&url=https%3A%2F%2Fd8j0ntlcm91z4.cloudfront.net%2Fuser_38xzZboKViGWJOttwIXH07lWA1P%2Fhf_20260609_201152_bba90a12-bf12-459f-91f0-51f237dbaf3b.png&w=1280&q=85";
-const PROFILE_PHOTO = "/Zae.jpg";
+const PROFILE_PHOTO = "/x.jpg";
 
 const SPOTLIGHT_R = 260;
 
@@ -113,18 +113,24 @@ const GLOBAL_CSS = `
     }
   }
 
-  @keyframes photoRingSpin { to { transform: rotate(360deg); } }
-  .photo-ring-spin { animation: photoRingSpin 6s linear infinite; }
-
   @keyframes photoReveal {
-    0% { opacity: 0; transform: scale(0.85) rotateY(-10deg); filter: blur(14px); }
-    100% { opacity: 1; transform: scale(1) rotateY(0deg); filter: blur(0); }
+    0% { opacity: 0; transform: scale(0.92) translateY(24px); filter: blur(10px); }
+    100% { opacity: 1; transform: scale(1) translateY(0); filter: blur(0); }
   }
-  .photo-reveal { animation: photoReveal 1.1s cubic-bezier(0.16,1,0.3,1) forwards; }
+  .photo-reveal { animation: photoReveal 0.9s cubic-bezier(0.16,1,0.3,1) forwards; }
+
+  @keyframes infoCardReveal {
+    0% { opacity: 0; transform: translate(24px, 20px) scale(0.92); }
+    100% { opacity: 1; transform: translate(0, 0) scale(1); }
+  }
+  .portfolio-info-card {
+    opacity: 0;
+    animation: infoCardReveal 0.7s cubic-bezier(0.16,1,0.3,1) forwards;
+    animation-delay: 0.55s;
+  }
 
   @media (prefers-reduced-motion: reduce) {
-    .photo-ring-spin { animation: none; }
-    .photo-reveal { animation: none; opacity: 1; }
+    .photo-reveal, .portfolio-info-card { animation: none; opacity: 1; }
   }
 
   .cert-dropdown-content {
@@ -516,76 +522,42 @@ function HeroSection({ unlocked, setUnlocked }) {
 }
 
 // ─── Portfolio Hero (Irsya) ───────────────────────────────────────────────────
+const SOCIAL_LINKS = [
+  { icon:<FaInstagram/>, href:"https://www.instagram.com/irsyazaelani/", label:"Instagram" },
+  { icon:<FaLinkedin/>, href:"https://www.linkedin.com/in/muhammad-irsya-zaelani", label:"LinkedIn" },
+  { icon:<FaTwitter/>, href:"https://x.com/TweetsOfCats/status/1578127628179210240", label:"X" },
+  { icon:<FaEnvelope/>, href:"https://maszae-bit.github.io/Login-Zae-Group/", label:"Newsletter" },
+];
+
 function PortfolioPhoto() {
-  const wrapRef = useRef(null);
-  const rafRef = useRef(null);
-  const [tilt, setTilt] = useState({ x: 0, y: 0 });
-  const [hover, setHover] = useState(false);
-
-  const handleMove = (e) => {
-    const el = wrapRef.current;
-    if (!el) return;
-    if (rafRef.current) cancelAnimationFrame(rafRef.current);
-    const clientX = e.clientX, clientY = e.clientY;
-    rafRef.current = requestAnimationFrame(() => {
-      const rect = el.getBoundingClientRect();
-      const px = (clientX - rect.left) / rect.width;
-      const py = (clientY - rect.top) / rect.height;
-      const rotateY = (px - 0.5) * 18;
-      const rotateX = (0.5 - py) * 18;
-      setTilt({ x: rotateX, y: rotateY });
-    });
-  };
-
-  const handleLeave = () => {
-    if (rafRef.current) cancelAnimationFrame(rafRef.current);
-    setTilt({ x: 0, y: 0 });
-    setHover(false);
-  };
-
-  useEffect(() => () => { if (rafRef.current) cancelAnimationFrame(rafRef.current); }, []);
-
   return (
     <div className="portfolio-photo-col" style={{ display:"flex",justifyContent:"center",alignItems:"center" }}>
-      <div
-        ref={wrapRef}
-        className="float-anim portfolio-photo-wrap photo-reveal"
-        onMouseMove={handleMove}
-        onMouseEnter={() => setHover(true)}
-        onMouseLeave={handleLeave}
-        style={{ position:"relative", perspective:900 }}
-      >
-        {/* Rotating gradient ring */}
-        <div className="photo-ring-spin" style={{
-          position:"absolute", inset:-7, borderRadius:24,
-          background:"conic-gradient(from 0deg, #e8702a 0%, transparent 22%, transparent 50%, #e8702a 72%, transparent 96%)",
-          filter:"blur(3px)",
-          opacity: hover ? 1 : 0.6,
-          transition:"opacity 0.4s ease",
-          zIndex:0,
-        }} />
-        <div style={{ position:"absolute",inset:-2,borderRadius:20,background:"linear-gradient(135deg,rgba(232,112,42,0.4),rgba(255,255,255,0.05))",zIndex:0 }} />
+      <div className="portfolio-photo-wrap photo-reveal" style={{ position:"relative", maxWidth:420, width:"100%" }}>
+        <img src={PROFILE_PHOTO} alt="Irsya Zaelani"
+          className="portfolio-photo-img"
+          style={{ display:"block", width:"100%", aspectRatio:"4/5", objectFit:"cover", borderRadius:24, border:"1px solid rgba(255,255,255,0.10)", boxShadow:"0 24px 60px rgba(0,0,0,0.6)" }}
+          onError={e => { e.currentTarget.style.display="none"; }}
+        />
 
-        <div style={{
-          position:"relative", zIndex:1,
-          transform:`rotateX(${tilt.x}deg) rotateY(${tilt.y}deg) scale(${hover ? 1.03 : 1})`,
-          transition: hover ? "transform 0.08s linear" : "transform 0.6s cubic-bezier(0.16,1,0.3,1)",
-          transformStyle:"preserve-3d",
+        {/* Overlapping info card */}
+        <div className="glass-panel portfolio-info-card" style={{
+          position:"absolute", right:"-12%", bottom:"-8%", width:"70%", minWidth:220,
+          borderRadius:24, border:"1px solid rgba(255,255,255,0.18)", background:"rgba(15,15,15,0.75)",
+          backdropFilter:"blur(20px) saturate(180%)", WebkitBackdropFilter:"blur(20px) saturate(180%)",
+          boxShadow:"0 20px 50px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.12)",
+          padding:"22px 22px 18px",
         }}>
-          <img src={PROFILE_PHOTO} alt="Irsya Zaelani"
-            className="portfolio-photo-img"
-            style={{ display:"block", width:320,height:320,objectFit:"cover",borderRadius:18,border:"1px solid rgba(255,255,255,0.10)",boxShadow: hover ? "0 32px 70px rgba(0,0,0,0.65)" : "0 24px 60px rgba(0,0,0,0.6)",transition:"box-shadow 0.4s ease" }}
-            onError={e => { e.currentTarget.style.display="none"; }}
-          />
-          {/* Shine sweep */}
-          <div style={{
-            position:"absolute", inset:0, borderRadius:18,
-            background:"linear-gradient(115deg, transparent 30%, rgba(255,255,255,0.28) 48%, transparent 62%)",
-            backgroundSize:"260% 260%",
-            backgroundPosition: hover ? "0% 0%" : "100% 100%",
-            transition:"background-position 1s ease",
-            pointerEvents:"none",
-          }} />
+          <p style={{ fontSize:16,fontWeight:700,color:"#fff",letterSpacing:"-0.02em" }}>Irsya Zaelani</p>
+          <p style={{ fontSize:12,color:"rgba(255,255,255,0.50)",marginTop:2 }}>Tech Enthusiast · IPB University</p>
+          <div style={{ display:"flex",gap:8,marginTop:16 }}>
+            {SOCIAL_LINKS.map(s => (
+              <a key={s.label} href={s.href} target="_blank" rel="noopener noreferrer" aria-label={s.label}
+                style={{ width:30,height:30,borderRadius:"50%",background:"rgba(255,255,255,0.08)",border:"1px solid rgba(255,255,255,0.15)",color:"#fff",display:"flex",alignItems:"center",justifyContent:"center",fontSize:12,transition:"all 0.25s" }}
+                onMouseEnter={e => { e.currentTarget.style.background="#e8702a"; e.currentTarget.style.borderColor="#e8702a"; }}
+                onMouseLeave={e => { e.currentTarget.style.background="rgba(255,255,255,0.08)"; e.currentTarget.style.borderColor="rgba(255,255,255,0.15)"; }}
+              >{s.icon}</a>
+            ))}
+          </div>
         </div>
       </div>
     </div>
@@ -655,7 +627,8 @@ function PortfolioHero() {
       <style>{`
         @media (max-width: 640px) {
           .portfolio-deco-orbit, .portfolio-deco-triangle { display:none !important; }
-          .portfolio-photo-img { width:220px !important; height:220px !important; }
+          .portfolio-photo-wrap { max-width: 280px !important; }
+          .portfolio-info-card { padding:16px 16px 14px !important; }
           .portfolio-photo-col { order:1; }
           .portfolio-text-col { order:2; }
         }
@@ -1220,12 +1193,7 @@ function Footer() {
     },
   ];
 
-  const socials = [
-    { icon:<FaInstagram/>, href:"https://www.instagram.com/irsyazaelani/", label:"Instagram" },
-    { icon:<FaLinkedin/>, href:"https://www.linkedin.com/in/muhammad-irsya-zaelani", label:"LinkedIn" },
-    { icon:<FaTwitter/>, href:"https://x.com/TweetsOfCats/status/1578127628179210240", label:"X" },
-    { icon:<FaEnvelope/>, href:"https://maszae-bit.github.io/Login-Zae-Group/", label:"Newsletter" },
-  ];
+  const socials = SOCIAL_LINKS;
 
   return (
     <footer style={{ background:"#000",color:"#fff",padding:"56px 56px 48px",borderTop:"1px solid rgba(255,255,255,0.10)" }}>
