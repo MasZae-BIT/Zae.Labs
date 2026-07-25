@@ -2015,13 +2015,6 @@ Steps to integrate
  2. Fill image assets with Unsplash stock images you know exist
  3. Use lucide-react icons for svgs or logos if component requires them`,
   },
-  {
-    Icon: Code2,
-    title: "Productivity Prompts",
-    desc: "Prompts to organize ideas, build learning plans, summarize resources, and execute faster.",
-    pill: "Get Prompt",
-    prompt: `GANTI dengan prompt ChatGPT kamu untuk Productivity.\n\nContoh struktur:\nRole: Kamu adalah personal productivity coach.\nGoal: [target belajar/kerja]\nTimeframe: [durasi]\nOutput format: rencana harian/mingguan + checklist prioritas.`,
-  },
 ];
 
 function PromptLibraryCard({ Icon, title, desc, pill, prompt }) {
