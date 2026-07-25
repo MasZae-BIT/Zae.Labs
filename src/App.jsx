@@ -895,7 +895,7 @@ const WOKWI_PROJECTS = [
     title: "Birthday Greetings Using Arduino",
     desc: "A creative Arduino project to display or play custom birthday greetings.",
     pill: "Get Code",
-    image: "/HBF.jpg",
+    image: "/HBD.jpg",
     code: `//code by ZaeLabs
 
 #include <Wire.h>
@@ -1071,12 +1071,83 @@ void loop() {
 }`,
   },
   {
-    Icon: Bot,
-    title: "AI Agent Prompts",
-    desc: "Prompt structures for planning, coding, researching, debugging, and automating repetitive tasks.",
-    pill: "Agent Workflow",
-    image: "https://images.unsplash.com/photo-1553406830-ef2513450d76?w=960&h=540&fit=crop&q=80",
-    code: `// GANTI dengan kode Wokwi kamu\n#include <Arduino.h>\n\nconst int trigPin = 9;\nconst int echoPin = 10;\n\nvoid setup() {\n  Serial.begin(9600);\n  pinMode(trigPin, OUTPUT);\n  pinMode(echoPin, INPUT);\n}\n\nvoid loop() {\n  digitalWrite(trigPin, LOW);\n  delayMicroseconds(2);\n  digitalWrite(trigPin, HIGH);\n  delayMicroseconds(10);\n  digitalWrite(trigPin, LOW);\n\n  long duration = pulseIn(echoPin, HIGH);\n  float distance = duration * 0.034 / 2;\n  Serial.println(distance);\n  delay(200);\n}`,
+    Icon: Code2,
+    title: "Measuring Distance Using Ultrasonic Sensor",
+    desc: "Learn how to accurately measure distance and detect objects using the HC-SR04 ultrasonic sensor with Arduino.",
+    pill: "Get Code",
+    image: "/Distance.png",
+    code: `#include <LiquidCrystal_I2C.h>
+LiquidCrystal_I2C lcd(0x27, 16, 2);
+const int greenLed = 5;
+const int yellowLed = 6;
+const int redLed = 7;
+const float soundSpeed = 0.0342;
+
+long getDistance(int trigPin, int echoPin) {
+  pinMode(trigPin, OUTPUT);
+  digitalWrite(trigPin, LOW);
+  digitalWrite(trigPin, HIGH);
+  delayMicroseconds(10);
+  digitalWrite(trigPin, LOW);
+  pinMode(echoPin, INPUT);
+  return pulseIn(echoPin, HIGH);
+}
+
+void turnOnGreenLed() {
+  digitalWrite(greenLed, HIGH);
+  digitalWrite(yellowLed, LOW);
+  digitalWrite(redLed, LOW);
+}
+
+void turnOnYellowLed() {
+  digitalWrite(greenLed, LOW);
+  digitalWrite(yellowLed, HIGH);
+  digitalWrite(redLed, LOW);
+}
+
+void turnOnRedLed() {
+  digitalWrite(greenLed, LOW);
+  digitalWrite(yellowLed, LOW);
+  digitalWrite(redLed, HIGH);
+}
+
+void setup() {
+  pinMode(greenLed, OUTPUT);
+  pinMode(yellowLed, OUTPUT);
+  pinMode(redLed, OUTPUT);
+  lcd.init();
+  lcd.begin(16, 2);
+  lcd.backlight();
+  Serial.begin(9600);
+  Serial.println("Suprapto - TI721378");
+}
+
+void loop() {
+  // Mengukur jarak menggunakan sensor ultrasonik
+  int distance = round((getDistance(9, 10) * soundSpeed) / 2);
+
+  // Menampilkan jarak di Serial Monitor
+  Serial.print("Distance: ");
+  Serial.print(distance);
+  Serial.println(" cm");
+
+  // Menampilkan jarak di LCD I2C
+  lcd.clear();
+  lcd.setCursor(0, 0);
+  lcd.print("Distance: ");
+  lcd.print(distance);
+  lcd.print(" cm");
+
+  // Mengatur LED berdasarkan jarak
+  if (distance > 15) {
+    turnOnGreenLed();
+  } else if (distance >= 5 && distance <= 15) {
+    turnOnYellowLed();
+  } else {
+    turnOnRedLed();
+  }
+  delay(250);
+}`,
   },
   {
     Icon: Video,
