@@ -67,6 +67,26 @@ const GLOBAL_CSS = `
     transform: translateY(-4px) !important;
   }
 
+  .glass-panel { position: relative; isolation: isolate; }
+  .glass-panel::before {
+    content: "";
+    position: absolute; inset: 0; border-radius: inherit;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix type='matrix' values='0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 0.5 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+    background-size: 120px 120px;
+    opacity: 0.05;
+    mix-blend-mode: overlay;
+    pointer-events: none;
+    z-index: 0;
+  }
+  .glass-panel::after {
+    content: "";
+    position: absolute; inset: 0; border-radius: inherit;
+    background: linear-gradient(155deg, rgba(255,255,255,0.16) 0%, rgba(255,255,255,0.03) 22%, rgba(255,255,255,0) 45%);
+    pointer-events: none;
+    z-index: 0;
+  }
+  .glass-panel > * { position: relative; z-index: 1; }
+
   .cert-dropdown-content {
     max-height: 0; overflow: hidden; opacity: 0;
     transition: max-height 0.4s ease, opacity 0.3s ease;
@@ -535,7 +555,7 @@ function PortfolioHero() {
 function AboutSection() {
   return (
     <section id="about" style={{ position:"relative",background:"#050505",color:"#fff",padding:"96px 56px",overflow:"hidden" }}>
-      <div style={{ position:"absolute",top:0,right:0,width:"55%",height:"70%",background:"radial-gradient(circle at top right, rgba(232,112,42,0.22) 0%, rgba(232,112,42,0.09) 35%, rgba(232,112,42,0) 70%)",pointerEvents:"none" }} />
+      <div style={{ position:"absolute",top:0,right:0,width:"70%",height:"85%",background:"radial-gradient(circle at top right, rgba(232,112,42,0.38) 0%, rgba(232,112,42,0.16) 40%, rgba(232,112,42,0) 72%)",pointerEvents:"none" }} />
       <div style={{ position:"absolute",top:"8%",right:"4%",opacity:0.9 }}>
         <ScrollSpin size={220} variant="diamond" />
       </div>
@@ -576,6 +596,7 @@ function ExperienceCard({ title, org, period, desc }) {
   const [h, setH] = useState(false);
   return (
     <div onMouseEnter={() => setH(true)} onMouseLeave={() => setH(false)}
+      className="glass-panel"
       style={{ borderRadius:28,border:h?"1px solid rgba(232,112,42,0.40)":"1px solid rgba(255,255,255,0.18)",background:h?"rgba(255,255,255,0.12)":"rgba(255,255,255,0.07)",padding:"32px 28px",backdropFilter:"blur(20px) saturate(180%)",WebkitBackdropFilter:"blur(20px) saturate(180%)",boxShadow:h?"0 8px 32px rgba(0,0,0,0.30), inset 0 1px 0 rgba(255,255,255,0.20)":"0 4px 24px rgba(0,0,0,0.20), inset 0 1px 0 rgba(255,255,255,0.12)",transition:"all 0.35s",transform:h?"translateY(-6px)":"translateY(0)",display:"flex",flexDirection:"column",gap:12,cursor:"default" }}>
       <div style={{ width:40,height:40,borderRadius:"50%",background:"rgba(232,112,42,0.12)",border:"1px solid rgba(232,112,42,0.25)",display:"flex",alignItems:"center",justifyContent:"center" }}>
         <BookOpen size={18} color="#e8702a" />
@@ -590,7 +611,7 @@ function ExperienceCard({ title, org, period, desc }) {
 function ExperienceSection() {
   return (
     <section id="experience" style={{ position:"relative",background:"#000",color:"#fff",padding:"96px 56px",overflow:"hidden" }}>
-      <div style={{ position:"absolute",bottom:0,left:0,width:"50%",height:"60%",background:"radial-gradient(circle at bottom left, rgba(232,112,42,0.14) 0%, rgba(232,112,42,0.05) 35%, rgba(232,112,42,0) 70%)",pointerEvents:"none" }} />
+      <div style={{ position:"absolute",bottom:0,left:0,width:"65%",height:"75%",background:"radial-gradient(circle at bottom left, rgba(232,112,42,0.30) 0%, rgba(232,112,42,0.10) 40%, rgba(232,112,42,0) 72%)",pointerEvents:"none" }} />
       <div style={{ position:"absolute",top:"6%",right:"-5%",opacity:0.75 }}>
         <ScrollSpin size={230} reverse variant="arc" />
       </div>
@@ -644,7 +665,7 @@ const CERTS = [
 function CertCard({ icon, title, desc, links }) {
   const [open, setOpen] = useState(false);
   return (
-    <div style={{ borderRadius:28,border:"1px solid rgba(255,255,255,0.18)",background:"rgba(255,255,255,0.07)",padding:"32px 28px",backdropFilter:"blur(20px) saturate(180%)",WebkitBackdropFilter:"blur(20px) saturate(180%)",boxShadow:"0 4px 24px rgba(0,0,0,0.20), inset 0 1px 0 rgba(255,255,255,0.12)",display:"flex",flexDirection:"column",gap:16,transition:"all 0.35s" }}>
+    <div className="glass-panel" style={{ borderRadius:28,border:"1px solid rgba(255,255,255,0.18)",background:"rgba(255,255,255,0.07)",padding:"32px 28px",backdropFilter:"blur(20px) saturate(180%)",WebkitBackdropFilter:"blur(20px) saturate(180%)",boxShadow:"0 4px 24px rgba(0,0,0,0.20), inset 0 1px 0 rgba(255,255,255,0.12)",display:"flex",flexDirection:"column",gap:16,transition:"all 0.35s" }}>
       <div style={{ fontSize:36, color:"#e8702a" }}>{icon}</div>
       <h3 style={{ fontSize:20,fontWeight:600,letterSpacing:"-0.03em" }}>{title}</h3>
       <p style={{ fontSize:14,color:"rgba(255,255,255,0.60)",lineHeight:1.65 }}>{desc}</p>
@@ -731,7 +752,7 @@ function ToolsSection() {
         <div style={{ display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(160px,1fr))",gap:16,maxWidth:1000,margin:"0 auto" }}>
           {filtered.map(({ name, href, icon }) => (
             <a key={name} href={href} target="_blank" rel="noopener noreferrer" className="tool-link-card">
-              <div className="tool-card-inner" style={{ borderRadius:20,border:"1px solid rgba(255,255,255,0.18)",background:"rgba(255,255,255,0.07)",backdropFilter:"blur(20px) saturate(180%)",WebkitBackdropFilter:"blur(20px) saturate(180%)",boxShadow:"0 4px 24px rgba(0,0,0,0.20), inset 0 1px 0 rgba(255,255,255,0.12)",height:150,display:"flex",flexDirection:"column",justifyContent:"center",alignItems:"center",gap:12,transition:"all 0.3s",cursor:"pointer" }}>
+              <div className="tool-card-inner glass-panel" style={{ borderRadius:20,border:"1px solid rgba(255,255,255,0.18)",background:"rgba(255,255,255,0.07)",backdropFilter:"blur(20px) saturate(180%)",WebkitBackdropFilter:"blur(20px) saturate(180%)",boxShadow:"0 4px 24px rgba(0,0,0,0.20), inset 0 1px 0 rgba(255,255,255,0.12)",height:150,display:"flex",flexDirection:"column",justifyContent:"center",alignItems:"center",gap:12,transition:"all 0.3s",cursor:"pointer" }}>
                 <span style={{ fontSize:36, color:"#e8702a" }}>{icon}</span>
                 <span style={{ fontSize:13,fontWeight:500,color:"rgba(255,255,255,0.80)",textAlign:"center" }}>{name}</span>
               </div>
