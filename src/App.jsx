@@ -93,6 +93,12 @@ const GLOBAL_CSS = `
   }
   .cert-dropdown-content.open { max-height: 400px; opacity: 1; }
 
+  .exp-dropdown-content {
+    max-height: 0; overflow: hidden; opacity: 0;
+    transition: max-height 0.45s ease, opacity 0.35s ease;
+  }
+  .exp-dropdown-content.open { max-height: 900px; opacity: 1; }
+
   .cert-link { text-decoration:none; display:flex; align-items:center; gap:10px; padding:11px 16px;
     border-radius:12px; font-size:13px; color:rgba(255,255,255,0.75); background:rgba(0,0,0,0.3);
     border:1px solid rgba(255,255,255,0.06); transition:all 0.2s; }
@@ -592,23 +598,54 @@ const EXPERIENCES = [
   { title:"Member of Dastha Research Team", org:"SMAN 28 Kab. Tangerang", period:"Jun 2023 – Jul 2024", desc:"Actively contributed to the research team. Applied strong analytical and teamwork skills to conduct studies, gather data, and develop innovative solutions." },
 ];
 
-function ExperienceCard({ title, org, period, desc }) {
+function ExperienceGroupCard({ org, meta, items }) {
+  const [open, setOpen] = useState(false);
   const [h, setH] = useState(false);
   return (
     <div onMouseEnter={() => setH(true)} onMouseLeave={() => setH(false)}
       className="glass-panel"
-      style={{ borderRadius:28,border:h?"1px solid rgba(232,112,42,0.40)":"1px solid rgba(255,255,255,0.18)",background:h?"rgba(255,255,255,0.12)":"rgba(255,255,255,0.07)",padding:"32px 28px",backdropFilter:"blur(20px) saturate(180%)",WebkitBackdropFilter:"blur(20px) saturate(180%)",boxShadow:h?"0 8px 32px rgba(0,0,0,0.30), inset 0 1px 0 rgba(255,255,255,0.20)":"0 4px 24px rgba(0,0,0,0.20), inset 0 1px 0 rgba(255,255,255,0.12)",transition:"all 0.35s",transform:h?"translateY(-6px)":"translateY(0)",display:"flex",flexDirection:"column",gap:12,cursor:"default" }}>
-      <div style={{ width:40,height:40,borderRadius:"50%",background:"rgba(232,112,42,0.12)",border:"1px solid rgba(232,112,42,0.25)",display:"flex",alignItems:"center",justifyContent:"center" }}>
-        <BookOpen size={18} color="#e8702a" />
+      style={{ borderRadius:28,border:(h||open)?"1px solid rgba(232,112,42,0.40)":"1px solid rgba(255,255,255,0.18)",background:(h||open)?"rgba(255,255,255,0.12)":"rgba(255,255,255,0.07)",padding:"32px 28px",backdropFilter:"blur(20px) saturate(180%)",WebkitBackdropFilter:"blur(20px) saturate(180%)",boxShadow:(h||open)?"0 8px 32px rgba(0,0,0,0.30), inset 0 1px 0 rgba(255,255,255,0.20)":"0 4px 24px rgba(0,0,0,0.20), inset 0 1px 0 rgba(255,255,255,0.12)",transition:"all 0.35s",transform:h?"translateY(-6px)":"translateY(0)",display:"flex",flexDirection:"column",gap:12,cursor:"pointer" }}
+      onClick={() => setOpen(p => !p)}>
+      <div style={{ display:"flex",alignItems:"center",justifyContent:"space-between" }}>
+        <div style={{ width:40,height:40,borderRadius:"50%",background:"rgba(232,112,42,0.12)",border:"1px solid rgba(232,112,42,0.25)",display:"flex",alignItems:"center",justifyContent:"center" }}>
+          <BookOpen size={18} color="#e8702a" />
+        </div>
+        <div style={{ color:"rgba(255,255,255,0.55)",transition:"transform 0.35s", transform: open ? "rotate(180deg)" : "rotate(0deg)" }}>
+          <ChevronDown size={18}/>
+        </div>
       </div>
-      <h3 style={{ fontSize:18,fontWeight:600,letterSpacing:"-0.03em",color:"#fff" }}>{title}</h3>
-      <p style={{ fontSize:13,color:"rgba(255,255,255,0.45)",fontWeight:500 }}>{org} · {period}</p>
-      <p style={{ fontSize:14,color:"rgba(255,255,255,0.65)",lineHeight:1.65 }}>{desc}</p>
+      <h3 style={{ fontSize:18,fontWeight:600,letterSpacing:"-0.03em",color:"#fff" }}>{org}</h3>
+      <p style={{ fontSize:13,color:"rgba(255,255,255,0.45)",fontWeight:500 }}>{meta}</p>
+      <p style={{ fontSize:13,color:"#e8702a",fontWeight:500 }}>{items.length} {items.length > 1 ? "activities" : "activity"} · tap to {open ? "collapse" : "expand"}</p>
+
+      <div className={`exp-dropdown-content ${open ? "open" : ""}`} style={{ marginTop: open ? 6 : 0, display:"flex", flexDirection:"column", gap:16 }}>
+        {items.map(({ title, period, desc }) => (
+          <div key={title} style={{ borderTop:"1px solid rgba(255,255,255,0.10)", paddingTop:16 }} onClick={e => e.stopPropagation()}>
+            <div style={{ display:"flex",justifyContent:"space-between",alignItems:"baseline",gap:8,flexWrap:"wrap" }}>
+              <p style={{ fontSize:15,fontWeight:600,color:"#fff" }}>{title}</p>
+              <p style={{ fontSize:12,color:"rgba(255,255,255,0.40)" }}>{period}</p>
+            </div>
+            <p style={{ fontSize:13,color:"rgba(255,255,255,0.65)",lineHeight:1.6,marginTop:6 }}>{desc}</p>
+          </div>
+        ))}
+      </div>
     </div>
   );
 }
 
 function ExperienceSection() {
+  const groups = [];
+  EXPERIENCES.forEach(e => {
+    let g = groups.find(g => g.org === e.org);
+    if (!g) { g = { org: e.org, items: [] }; groups.push(g); }
+    g.items.push(e);
+  });
+  const groupMeta = groups.map(g => {
+    const periods = g.items.map(i => i.period);
+    const meta = periods.includes("Present") ? "Present" : periods[0];
+    return { ...g, meta };
+  });
+
   return (
     <section id="experience" style={{ position:"relative",background:"#000",color:"#fff",padding:"96px 56px",overflow:"hidden" }}>
       <div style={{ position:"absolute",bottom:0,left:0,width:960,height:960,background:"radial-gradient(circle closest-side at center, rgba(232,112,42,0.36) 0%, rgba(232,112,42,0.16) 35%, rgba(232,112,42,0.05) 65%, rgba(232,112,42,0) 100%)",pointerEvents:"none" }} />
@@ -621,8 +658,8 @@ function ExperienceSection() {
           Where I've <span className="font-playfair">grown</span> and contributed.
         </h2>
         <p style={{ color:"rgba(255,255,255,0.55)",fontSize:15,lineHeight:1.65,maxWidth:480,marginBottom:48 }}>Organizations and communities that shaped my skills in tech, leadership, and collaboration.</p>
-        <div style={{ display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(260px,1fr))",gap:20 }}>
-          {EXPERIENCES.map(e => <ExperienceCard key={e.title} {...e} />)}
+        <div style={{ display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(280px,1fr))",gap:20 }}>
+          {groupMeta.map(g => <ExperienceGroupCard key={g.org} org={g.org} meta={g.meta} items={g.items} />)}
         </div>
       </div>
     </section>
