@@ -7,7 +7,7 @@ const BG_IMAGE_1 =
   "https://images.higgs.ai/?default=1&output=webp&url=https%3A%2F%2Fd8j0ntlcm91z4.cloudfront.net%2Fuser_38xzZboKViGWJOttwIXH07lWA1P%2Fhf_20260609_195923_b0ba8ace-1d1d-4f2c-9a28-1ab84b330680.png&w=1280&q=85";
 const BG_IMAGE_2 =
   "https://images.higgs.ai/?default=1&output=webp&url=https%3A%2F%2Fd8j0ntlcm91z4.cloudfront.net%2Fuser_38xzZboKViGWJOttwIXH07lWA1P%2Fhf_20260609_201152_bba90a12-bf12-459f-91f0-51f237dbaf3b.png&w=1280&q=85";
-const PROFILE_PHOTO = "/Zae.jpg";
+const PROFILE_PHOTO = "/x.jpg";
 
 const SPOTLIGHT_R = 260;
 
@@ -476,6 +476,82 @@ function HeroSection({ unlocked, setUnlocked }) {
 }
 
 // ─── Portfolio Hero (Irsya) ───────────────────────────────────────────────────
+function PortfolioPhoto() {
+  const wrapRef = useRef(null);
+  const rafRef = useRef(null);
+  const [tilt, setTilt] = useState({ x: 0, y: 0 });
+  const [hover, setHover] = useState(false);
+
+  const handleMove = (e) => {
+    const el = wrapRef.current;
+    if (!el) return;
+    if (rafRef.current) cancelAnimationFrame(rafRef.current);
+    const clientX = e.clientX, clientY = e.clientY;
+    rafRef.current = requestAnimationFrame(() => {
+      const rect = el.getBoundingClientRect();
+      const px = (clientX - rect.left) / rect.width;
+      const py = (clientY - rect.top) / rect.height;
+      const rotateY = (px - 0.5) * 18;
+      const rotateX = (0.5 - py) * 18;
+      setTilt({ x: rotateX, y: rotateY });
+    });
+  };
+
+  const handleLeave = () => {
+    if (rafRef.current) cancelAnimationFrame(rafRef.current);
+    setTilt({ x: 0, y: 0 });
+    setHover(false);
+  };
+
+  useEffect(() => () => { if (rafRef.current) cancelAnimationFrame(rafRef.current); }, []);
+
+  return (
+    <div className="portfolio-photo-col" style={{ display:"flex",justifyContent:"center",alignItems:"center" }}>
+      <div
+        ref={wrapRef}
+        className="float-anim portfolio-photo-wrap photo-reveal"
+        onMouseMove={handleMove}
+        onMouseEnter={() => setHover(true)}
+        onMouseLeave={handleLeave}
+        style={{ position:"relative", perspective:900 }}
+      >
+        {/* Rotating gradient ring */}
+        <div className="photo-ring-spin" style={{
+          position:"absolute", inset:-7, borderRadius:24,
+          background:"conic-gradient(from 0deg, #e8702a 0%, transparent 22%, transparent 50%, #e8702a 72%, transparent 96%)",
+          filter:"blur(3px)",
+          opacity: hover ? 1 : 0.6,
+          transition:"opacity 0.4s ease",
+          zIndex:0,
+        }} />
+        <div style={{ position:"absolute",inset:-2,borderRadius:20,background:"linear-gradient(135deg,rgba(232,112,42,0.4),rgba(255,255,255,0.05))",zIndex:0 }} />
+
+        <div style={{
+          position:"relative", zIndex:1,
+          transform:`rotateX(${tilt.x}deg) rotateY(${tilt.y}deg) scale(${hover ? 1.03 : 1})`,
+          transition: hover ? "transform 0.08s linear" : "transform 0.6s cubic-bezier(0.16,1,0.3,1)",
+          transformStyle:"preserve-3d",
+        }}>
+          <img src={PROFILE_PHOTO} alt="Irsya Zaelani"
+            className="portfolio-photo-img"
+            style={{ display:"block", width:320,height:320,objectFit:"cover",borderRadius:18,border:"1px solid rgba(255,255,255,0.10)",boxShadow: hover ? "0 32px 70px rgba(0,0,0,0.65)" : "0 24px 60px rgba(0,0,0,0.6)",transition:"box-shadow 0.4s ease" }}
+            onError={e => { e.currentTarget.style.display="none"; }}
+          />
+          {/* Shine sweep */}
+          <div style={{
+            position:"absolute", inset:0, borderRadius:18,
+            background:"linear-gradient(115deg, transparent 30%, rgba(255,255,255,0.28) 48%, transparent 62%)",
+            backgroundSize:"260% 260%",
+            backgroundPosition: hover ? "0% 0%" : "100% 100%",
+            transition:"background-position 1s ease",
+            pointerEvents:"none",
+          }} />
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function PortfolioHero() {
   const [typed, setTyped] = useState("");
   const fullText = "Hi there! I'm a tech enthusiast currently focused on learning how to turn simple ideas into code. Still a work in progress, but always excited to learn and try new things.";
