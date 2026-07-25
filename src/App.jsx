@@ -110,19 +110,22 @@ function ScrollSpin({ size = 280, accent = "#e8702a", reverse = false, dim = 1, 
 
   useEffect(() => {
     const dir = reverse ? -1 : 1;
-    const onScroll = () => {
-      if (rafRef.current) return;
-      rafRef.current = requestAnimationFrame(() => {
-        const y = window.scrollY;
-        if (outerRef.current) outerRef.current.style.transform = `rotate(${y * 0.11 * dir}deg)`;
-        if (midRef.current) midRef.current.style.transform = `rotate(${y * -0.19 * dir}deg)`;
-        rafRef.current = null;
-      });
+    let running = true;
+    const startTime = Date.now();
+    const IDLE_SPEED = 6; // deg per second, keeps shapes moving even without scroll
+
+    const tick = () => {
+      if (!running) return;
+      const elapsedSec = (Date.now() - startTime) / 1000;
+      const idle = elapsedSec * IDLE_SPEED * dir;
+      const y = window.scrollY;
+      if (outerRef.current) outerRef.current.style.transform = `rotate(${idle + y * 0.11 * dir}deg)`;
+      if (midRef.current) midRef.current.style.transform = `rotate(${idle * -1.6 + y * -0.19 * dir}deg)`;
+      rafRef.current = requestAnimationFrame(tick);
     };
-    window.addEventListener("scroll", onScroll, { passive: true });
-    onScroll();
+    rafRef.current = requestAnimationFrame(tick);
     return () => {
-      window.removeEventListener("scroll", onScroll);
+      running = false;
       if (rafRef.current) cancelAnimationFrame(rafRef.current);
     };
   }, [reverse]);
