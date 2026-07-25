@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { Code2, Bot, Video, Zap, Menu, ArrowRight, X, Search, ChevronDown, ChevronUp, ExternalLink, Award, BookOpen, Wrench, GraduationCap } from "lucide-react";
+import { Code2, Bot, Video, Zap, Menu, ArrowRight, X, Search, ChevronDown, ChevronUp, ExternalLink, Award, BookOpen, Wrench, GraduationCap, Copy, Check, Cpu } from "lucide-react";
 import { FaDatabase, FaGithub, FaMicroscope, FaRobot, FaCheckCircle, FaSpotify, FaDiscord, FaInstagram, FaTiktok, FaBook, FaGraduationCap, FaTrophy, FaScroll, FaLinkedin, FaTwitter, FaEnvelope } from "react-icons/fa";
 
 // ─── Asset URLs ───────────────────────────────────────────────────────────────
@@ -768,24 +768,157 @@ function ToolsSection() {
 }
 
 // ─── Prompts (Zae Labs) ───────────────────────────────────────────────────────
-const PROMPT_CARDS = [
-  { Icon:Code2, title:"Web Development Prompts", desc:"Prompts for building landing pages, full-stack apps, UI systems, and product prototypes.", pill:"React · Vite · Tailwind" },
-  { Icon:Bot,   title:"AI Agent Prompts",        desc:"Prompt structures for planning, coding, researching, debugging, and automating repetitive tasks.", pill:"Agent Workflow" },
-  { Icon:Video, title:"Content Creation Prompts",desc:"Prompt systems for Reels, Shorts, carousel posts, hooks, scripts, and content calendars.", pill:"Social Media" },
-  { Icon:Zap,   title:"Productivity Prompts",    desc:"Prompts to organize ideas, build learning plans, summarize resources, and execute faster.", pill:"Daily System" },
+// ─── Wokwi Projects (image + code modal) ──────────────────────────────────────
+// GANTI konten di bawah ini dengan project Wokwi kamu yang asli:
+// - image: link gambar rasio 16:9 (screenshot circuit / hasil simulasi kamu)
+// - code: isi kode Arduino/C++ dari project wokwi.com kamu
+const WOKWI_PROJECTS = [
+  {
+    Icon: Code2,
+    title: "Web Development Prompts",
+    desc: "Prompt structures for building landing pages, full-stack apps, UI systems, and product prototypes.",
+    pill: "React · Vite · Tailwind",
+    image: "https://images.unsplash.com/photo-1518770660439-4636190af475?w=960&h=540&fit=crop&q=80",
+    code: `// GANTI dengan kode Wokwi kamu\n#include <Arduino.h>\n\nvoid setup() {\n  Serial.begin(115200);\n  pinMode(LED_BUILTIN, OUTPUT);\n}\n\nvoid loop() {\n  digitalWrite(LED_BUILTIN, HIGH);\n  delay(500);\n  digitalWrite(LED_BUILTIN, LOW);\n  delay(500);\n}`,
+  },
+  {
+    Icon: Bot,
+    title: "AI Agent Prompts",
+    desc: "Prompt structures for planning, coding, researching, debugging, and automating repetitive tasks.",
+    pill: "Agent Workflow",
+    image: "https://images.unsplash.com/photo-1553406830-ef2513450d76?w=960&h=540&fit=crop&q=80",
+    code: `// GANTI dengan kode Wokwi kamu\n#include <Arduino.h>\n\nconst int trigPin = 9;\nconst int echoPin = 10;\n\nvoid setup() {\n  Serial.begin(9600);\n  pinMode(trigPin, OUTPUT);\n  pinMode(echoPin, INPUT);\n}\n\nvoid loop() {\n  digitalWrite(trigPin, LOW);\n  delayMicroseconds(2);\n  digitalWrite(trigPin, HIGH);\n  delayMicroseconds(10);\n  digitalWrite(trigPin, LOW);\n\n  long duration = pulseIn(echoPin, HIGH);\n  float distance = duration * 0.034 / 2;\n  Serial.println(distance);\n  delay(200);\n}`,
+  },
+  {
+    Icon: Video,
+    title: "Content Creation Prompts",
+    desc: "Prompt systems for Reels, Shorts, carousel posts, hooks, scripts, and content calendars.",
+    pill: "Social Media",
+    image: "https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?w=960&h=540&fit=crop&q=80",
+    code: `// GANTI dengan kode Wokwi kamu\n#include <Arduino.h>\n#include <DHT.h>\n\n#define DHTPIN 2\n#define DHTTYPE DHT22\nDHT dht(DHTPIN, DHTTYPE);\n\nvoid setup() {\n  Serial.begin(9600);\n  dht.begin();\n}\n\nvoid loop() {\n  float t = dht.readTemperature();\n  float h = dht.readHumidity();\n  Serial.print("Temp: "); Serial.print(t);\n  Serial.print(" Hum: "); Serial.println(h);\n  delay(2000);\n}`,
+  },
+  {
+    Icon: Zap,
+    title: "Productivity Prompts",
+    desc: "Prompts to organize ideas, build learning plans, summarize resources, and execute faster.",
+    pill: "Daily System",
+    image: "https://images.unsplash.com/photo-1517077304055-6e89abbf09b0?w=960&h=540&fit=crop&q=80",
+    code: `// GANTI dengan kode Wokwi kamu\n#include <Arduino.h>\n#include <Servo.h>\n\nServo myServo;\n\nvoid setup() {\n  myServo.attach(9);\n}\n\nvoid loop() {\n  for (int pos = 0; pos <= 180; pos++) {\n    myServo.write(pos);\n    delay(10);\n  }\n  for (int pos = 180; pos >= 0; pos--) {\n    myServo.write(pos);\n    delay(10);\n  }\n}`,
+  },
 ];
 
-function PromptCard({ Icon, title, desc, pill }) {
-  const [h, setH] = useState(false);
+// ─── Bottom-sheet Modal (slides up from bottom) ───────────────────────────────
+function BottomSheetModal({ open, onClose, children }) {
+  const [mounted, setMounted] = useState(open);
+  const [visible, setVisible] = useState(false);
+
+  useEffect(() => {
+    if (open) {
+      setMounted(true);
+      requestAnimationFrame(() => requestAnimationFrame(() => setVisible(true)));
+      document.body.style.overflow = "hidden";
+    } else {
+      setVisible(false);
+      document.body.style.overflow = "";
+      const t = setTimeout(() => setMounted(false), 400);
+      return () => clearTimeout(t);
+    }
+  }, [open]);
+
+  useEffect(() => () => { document.body.style.overflow = ""; }, []);
+
+  if (!mounted) return null;
+
   return (
-    <div onMouseEnter={()=>setH(true)} onMouseLeave={()=>setH(false)}
-      className="glass-panel"
-      style={{ borderRadius:32,border:h?"1px solid rgba(232,112,42,0.40)":"1px solid rgba(255,255,255,0.18)",background:h?"rgba(255,255,255,0.12)":"rgba(255,255,255,0.07)",padding:24,backdropFilter:"blur(20px) saturate(180%)",WebkitBackdropFilter:"blur(20px) saturate(180%)",boxShadow:h?"0 8px 32px rgba(0,0,0,0.30), inset 0 1px 0 rgba(255,255,255,0.20)":"0 4px 24px rgba(0,0,0,0.20), inset 0 1px 0 rgba(255,255,255,0.12)",transition:"all 0.3s",transform:h?"translateY(-4px)":"translateY(0)",cursor:"default" }}>
-      <div style={{ width:44,height:44,borderRadius:"50%",background:"rgba(232,112,42,0.15)",color:"#e8702a",display:"flex",alignItems:"center",justifyContent:"center",marginBottom:24 }}><Icon size={20}/></div>
-      <p style={{ fontSize:17,fontWeight:600,letterSpacing:"-0.03em" }}>{title}</p>
-      <p style={{ fontSize:14,color:"rgba(255,255,255,0.60)",lineHeight:1.6,marginTop:12 }}>{desc}</p>
-      <span style={{ display:"inline-flex",marginTop:24,fontSize:12,color:"rgba(255,255,255,0.70)",border:"1px solid rgba(255,255,255,0.10)",borderRadius:9999,padding:"4px 12px" }}>{pill}</span>
+    <div style={{
+      position:"fixed", inset:0, zIndex:1000,
+      display:"flex", alignItems:"flex-end", justifyContent:"center",
+    }}>
+      <div onClick={onClose} style={{
+        position:"absolute", inset:0, background:"rgba(0,0,0,0.7)",
+        backdropFilter:"blur(4px)", WebkitBackdropFilter:"blur(4px)",
+        opacity: visible ? 1 : 0, transition:"opacity 0.4s ease",
+      }} />
+      <div style={{
+        position:"relative", width:"100%", maxWidth:820, maxHeight:"88vh",
+        overflowY:"auto",
+        background:"rgba(15,15,15,0.92)", backdropFilter:"blur(24px) saturate(180%)", WebkitBackdropFilter:"blur(24px) saturate(180%)",
+        border:"1px solid rgba(255,255,255,0.12)", borderBottom:"none",
+        borderRadius:"28px 28px 0 0",
+        padding:"20px 24px 32px",
+        transform: visible ? "translateY(0)" : "translateY(100%)",
+        transition:"transform 0.45s cubic-bezier(0.16,1,0.3,1)",
+        boxShadow:"0 -20px 60px rgba(0,0,0,0.5)",
+      }}>
+        <div style={{ width:40,height:4,borderRadius:9999,background:"rgba(255,255,255,0.20)",margin:"0 auto 16px" }} />
+        <button onClick={onClose} aria-label="Close"
+          style={{ position:"absolute", top:16, right:16, width:32, height:32, borderRadius:"50%",
+            background:"rgba(255,255,255,0.08)", border:"1px solid rgba(255,255,255,0.15)", color:"#fff",
+            display:"flex", alignItems:"center", justifyContent:"center", cursor:"pointer" }}>
+          <X size={16}/>
+        </button>
+        {children}
+      </div>
     </div>
+  );
+}
+
+function WokwiCard({ Icon, title, desc, pill, image, code }) {
+  const [h, setH] = useState(false);
+  const [imageOpen, setImageOpen] = useState(false);
+  const [codeOpen, setCodeOpen] = useState(false);
+  const [copied, setCopied] = useState(false);
+
+  const handleCopy = () => {
+    navigator.clipboard?.writeText(code).then(() => {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 1500);
+    });
+  };
+
+  return (
+    <>
+      <div onMouseEnter={()=>setH(true)} onMouseLeave={()=>setH(false)}
+        onClick={() => setImageOpen(true)}
+        className="glass-panel"
+        style={{ borderRadius:32,border:h?"1px solid rgba(232,112,42,0.40)":"1px solid rgba(255,255,255,0.18)",background:h?"rgba(255,255,255,0.12)":"rgba(255,255,255,0.07)",padding:24,backdropFilter:"blur(20px) saturate(180%)",WebkitBackdropFilter:"blur(20px) saturate(180%)",boxShadow:h?"0 8px 32px rgba(0,0,0,0.30), inset 0 1px 0 rgba(255,255,255,0.20)":"0 4px 24px rgba(0,0,0,0.20), inset 0 1px 0 rgba(255,255,255,0.12)",transition:"all 0.3s",transform:h?"translateY(-4px)":"translateY(0)",cursor:"pointer" }}>
+        <div style={{ width:44,height:44,borderRadius:"50%",background:"rgba(232,112,42,0.15)",color:"#e8702a",display:"flex",alignItems:"center",justifyContent:"center",marginBottom:24 }}><Icon size={20}/></div>
+        <p style={{ fontSize:17,fontWeight:600,letterSpacing:"-0.03em" }}>{title}</p>
+        <p style={{ fontSize:14,color:"rgba(255,255,255,0.60)",lineHeight:1.6,marginTop:12 }}>{desc}</p>
+        <span
+          onClick={(e) => { e.stopPropagation(); setCodeOpen(true); }}
+          style={{ display:"inline-flex",alignItems:"center",gap:6,marginTop:24,fontSize:12,color:"rgba(255,255,255,0.70)",border:"1px solid rgba(255,255,255,0.15)",borderRadius:9999,padding:"4px 12px",cursor:"pointer",transition:"all 0.2s" }}
+          onMouseEnter={e => { e.currentTarget.style.background="rgba(232,112,42,0.15)"; e.currentTarget.style.borderColor="rgba(232,112,42,0.40)"; e.currentTarget.style.color="#e8702a"; }}
+          onMouseLeave={e => { e.currentTarget.style.background="transparent"; e.currentTarget.style.borderColor="rgba(255,255,255,0.15)"; e.currentTarget.style.color="rgba(255,255,255,0.70)"; }}
+        ><Code2 size={11}/> {pill}</span>
+      </div>
+
+      {/* Image modal — 16:9 */}
+      <BottomSheetModal open={imageOpen} onClose={() => setImageOpen(false)}>
+        <h3 style={{ fontSize:20,fontWeight:600,marginBottom:16,paddingRight:36 }}>{title}</h3>
+        <div style={{ width:"100%",aspectRatio:"16/9",borderRadius:16,overflow:"hidden",border:"1px solid rgba(255,255,255,0.10)",background:"#000" }}>
+          <img src={image} alt={title} style={{ width:"100%",height:"100%",objectFit:"cover",display:"block" }} />
+        </div>
+        <p style={{ fontSize:14,color:"rgba(255,255,255,0.60)",lineHeight:1.6,marginTop:16 }}>{desc}</p>
+      </BottomSheetModal>
+
+      {/* Code modal */}
+      <BottomSheetModal open={codeOpen} onClose={() => setCodeOpen(false)}>
+        <div style={{ display:"flex",alignItems:"center",gap:10,marginBottom:16,paddingRight:36 }}>
+          <div style={{ width:32,height:32,borderRadius:"50%",background:"rgba(232,112,42,0.15)",color:"#e8702a",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0 }}><Cpu size={15}/></div>
+          <h3 style={{ fontSize:18,fontWeight:600 }}>{title} — Wokwi Code</h3>
+        </div>
+        <div style={{ position:"relative" }}>
+          <button onClick={handleCopy}
+            style={{ position:"absolute",top:10,right:10,display:"flex",alignItems:"center",gap:6,fontSize:12,padding:"6px 12px",borderRadius:8,background:"rgba(255,255,255,0.08)",border:"1px solid rgba(255,255,255,0.15)",color:"#fff",cursor:"pointer" }}>
+            {copied ? <Check size={13}/> : <Copy size={13}/>} {copied ? "Copied" : "Copy"}
+          </button>
+          <pre style={{ margin:0,padding:"20px 16px",borderRadius:16,background:"rgba(0,0,0,0.45)",border:"1px solid rgba(255,255,255,0.10)",overflowX:"auto",fontSize:13,lineHeight:1.6,color:"rgba(255,255,255,0.85)",fontFamily:"'SFMono-Regular',Consolas,monospace" }}>
+            <code>{code}</code>
+          </pre>
+        </div>
+      </BottomSheetModal>
+    </>
   );
 }
 
@@ -800,7 +933,7 @@ function PromptsSection() {
         <h2 style={{ fontSize:"clamp(32px,5vw,58px)",fontWeight:500,letterSpacing:"-0.06em",lineHeight:1,maxWidth:680,marginBottom:16 }}>Ready-to-use prompts for modern builders.</h2>
         <p style={{ color:"rgba(255,255,255,0.60)",fontSize:15,lineHeight:1.65,maxWidth:520,marginBottom:48 }}>Explore prompt systems designed for web development, AI agents, content creation, automation, and productivity.</p>
         <div style={{ display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(230px,1fr))",gap:16 }}>
-          {PROMPT_CARDS.map(c => <PromptCard key={c.title} {...c}/>)}
+          {WOKWI_PROJECTS.map(c => <WokwiCard key={c.title} {...c}/>)}
         </div>
       </div>
     </section>
