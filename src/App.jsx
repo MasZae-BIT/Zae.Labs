@@ -62,7 +62,7 @@ const GLOBAL_CSS = `
   .tool-link-card { text-decoration:none; }
   .tool-link-card:hover .tool-card-inner {
     border-color: rgba(232,112,42,0.40) !important;
-    background: rgba(255,255,255,0.07) !important;
+    background: rgba(255,255,255,0.12) !important;
     transform: translateY(-4px) !important;
   }
 
@@ -562,7 +562,7 @@ function ExperienceCard({ title, org, period, desc }) {
   const [h, setH] = useState(false);
   return (
     <div onMouseEnter={() => setH(true)} onMouseLeave={() => setH(false)}
-      style={{ borderRadius:28,border:h?"1px solid rgba(232,112,42,0.35)":"1px solid rgba(255,255,255,0.10)",background:h?"rgba(255,255,255,0.06)":"rgba(15,15,15,0.60)",padding:"32px 28px",backdropFilter:"blur(20px)",transition:"all 0.35s",transform:h?"translateY(-6px)":"translateY(0)",display:"flex",flexDirection:"column",gap:12,cursor:"default" }}>
+      style={{ borderRadius:28,border:h?"1px solid rgba(232,112,42,0.40)":"1px solid rgba(255,255,255,0.18)",background:h?"rgba(255,255,255,0.12)":"rgba(255,255,255,0.07)",padding:"32px 28px",backdropFilter:"blur(20px) saturate(180%)",WebkitBackdropFilter:"blur(20px) saturate(180%)",boxShadow:h?"0 8px 32px rgba(0,0,0,0.30)":"0 4px 24px rgba(0,0,0,0.20)",transition:"all 0.35s",transform:h?"translateY(-6px)":"translateY(0)",display:"flex",flexDirection:"column",gap:12,cursor:"default" }}>
       <div style={{ width:40,height:40,borderRadius:"50%",background:"rgba(232,112,42,0.12)",border:"1px solid rgba(232,112,42,0.25)",display:"flex",alignItems:"center",justifyContent:"center" }}>
         <BookOpen size={18} color="#e8702a" />
       </div>
@@ -630,7 +630,7 @@ const CERTS = [
 function CertCard({ icon, title, desc, links }) {
   const [open, setOpen] = useState(false);
   return (
-    <div style={{ borderRadius:28,border:"1px solid rgba(255,255,255,0.10)",background:"rgba(15,15,15,0.60)",padding:"32px 28px",backdropFilter:"blur(20px)",display:"flex",flexDirection:"column",gap:16,transition:"all 0.35s" }}>
+    <div style={{ borderRadius:28,border:"1px solid rgba(255,255,255,0.18)",background:"rgba(255,255,255,0.07)",padding:"32px 28px",backdropFilter:"blur(20px) saturate(180%)",WebkitBackdropFilter:"blur(20px) saturate(180%)",boxShadow:"0 4px 24px rgba(0,0,0,0.20)",display:"flex",flexDirection:"column",gap:16,transition:"all 0.35s" }}>
       <div style={{ fontSize:36, color:"#e8702a" }}>{icon}</div>
       <h3 style={{ fontSize:20,fontWeight:600,letterSpacing:"-0.03em" }}>{title}</h3>
       <p style={{ fontSize:14,color:"rgba(255,255,255,0.60)",lineHeight:1.65 }}>{desc}</p>
@@ -717,7 +717,7 @@ function ToolsSection() {
         <div style={{ display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(160px,1fr))",gap:16,maxWidth:1000,margin:"0 auto" }}>
           {filtered.map(({ name, href, icon }) => (
             <a key={name} href={href} target="_blank" rel="noopener noreferrer" className="tool-link-card">
-              <div className="tool-card-inner" style={{ borderRadius:20,border:"1px solid rgba(255,255,255,0.10)",background:"rgba(15,15,15,0.60)",backdropFilter:"blur(10px)",height:150,display:"flex",flexDirection:"column",justifyContent:"center",alignItems:"center",gap:12,transition:"all 0.3s",cursor:"pointer" }}>
+              <div className="tool-card-inner" style={{ borderRadius:20,border:"1px solid rgba(255,255,255,0.18)",background:"rgba(255,255,255,0.07)",backdropFilter:"blur(20px) saturate(180%)",WebkitBackdropFilter:"blur(20px) saturate(180%)",boxShadow:"0 4px 24px rgba(0,0,0,0.20)",height:150,display:"flex",flexDirection:"column",justifyContent:"center",alignItems:"center",gap:12,transition:"all 0.3s",cursor:"pointer" }}>
                 <span style={{ fontSize:36, color:"#e8702a" }}>{icon}</span>
                 <span style={{ fontSize:13,fontWeight:500,color:"rgba(255,255,255,0.80)",textAlign:"center" }}>{name}</span>
               </div>
