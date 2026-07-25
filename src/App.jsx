@@ -555,7 +555,7 @@ function PortfolioHero() {
 function AboutSection() {
   return (
     <section id="about" style={{ position:"relative",background:"#050505",color:"#fff",padding:"96px 56px",overflow:"hidden" }}>
-      <div style={{ position:"absolute",top:0,right:0,width:640,height:640,background:"radial-gradient(circle closest-side at center, rgba(232,112,42,0.30) 0%, rgba(232,112,42,0.10) 45%, rgba(232,112,42,0) 100%)",pointerEvents:"none" }} />
+      <div style={{ position:"absolute",top:0,right:0,width:960,height:960,background:"radial-gradient(circle closest-side at center, rgba(232,112,42,0.42) 0%, rgba(232,112,42,0.20) 35%, rgba(232,112,42,0.06) 65%, rgba(232,112,42,0) 100%)",pointerEvents:"none" }} />
       <div style={{ position:"absolute",top:"8%",right:"4%",opacity:0.9 }}>
         <ScrollSpin size={220} variant="diamond" />
       </div>
@@ -611,7 +611,7 @@ function ExperienceCard({ title, org, period, desc }) {
 function ExperienceSection() {
   return (
     <section id="experience" style={{ position:"relative",background:"#000",color:"#fff",padding:"96px 56px",overflow:"hidden" }}>
-      <div style={{ position:"absolute",bottom:0,left:0,width:640,height:640,background:"radial-gradient(circle closest-side at center, rgba(232,112,42,0.26) 0%, rgba(232,112,42,0.08) 45%, rgba(232,112,42,0) 100%)",pointerEvents:"none" }} />
+      <div style={{ position:"absolute",bottom:0,left:0,width:960,height:960,background:"radial-gradient(circle closest-side at center, rgba(232,112,42,0.36) 0%, rgba(232,112,42,0.16) 35%, rgba(232,112,42,0.05) 65%, rgba(232,112,42,0) 100%)",pointerEvents:"none" }} />
       <div style={{ position:"absolute",top:"6%",right:"-5%",opacity:0.75 }}>
         <ScrollSpin size={230} reverse variant="arc" />
       </div>
