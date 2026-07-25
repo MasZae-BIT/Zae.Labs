@@ -1541,27 +1541,199 @@ function PromptsSection() {
 const CHATGPT_PROMPTS = [
   {
     Icon: Code2,
-    title: "Web Development Prompts",
-    desc: "Prompt structures for building landing pages, full-stack apps, UI systems, and product prototypes.",
-    pill: "React · Vite · Tailwind",
-    prompt: `GANTI dengan prompt ChatGPT kamu untuk Web Development.\n\nContoh struktur:\nRole: Kamu adalah senior frontend engineer.\nContext: [jelaskan project/produk]\nTask: Bangun landing page dengan section hero, fitur, dan CTA menggunakan React + Tailwind.\nConstraints: [tech stack, aksesibilitas, responsif]\nOutput format: kode lengkap per file.`,
+    title: "Web Prompts",
+    desc: "This prompt specifies a dark, cinematic landing page for a creative studio called "Prisma," built with React + Vite + TypeScript + Tailwind CSS. It has three sections — a full-screen video Hero with animated giant title text, an About section with scroll-linked text reveal, and a Features section with four animated cards (one video, three checklist-style) — all styled with a warm cream-on-black color palette, custom Google Fonts, noise-texture overlays, and framer-motion animations throughout.",
+    pill: "Get Prompt",
+    prompt: `Create a React + Vite + TypeScript + Tailwind CSS landing page for a creative studio called "Prisma". The page has 3 sections: Hero, About, and Features. Use framer-motion for animations and lucide-react for icons. The design is dark, moody, and cinematic with a warm cream color palette.
+
+FONTS
+
+Load two Google Fonts in index.html:
+
+Almarai (weights: 300, 400, 700, 800) -- used as the global default font
+Instrument Serif (italic only) -- used for italic accent text in the About section
+In index.css, set the global font family:
+
+
+* { font-family: 'Almarai', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', sans-serif; }
+In tailwind.config.js, extend:
+
+colors.primary: #DEDBC8 (warm cream, used for all primary text and accents)
+fontFamily.serif: ['"Instrument Serif"', 'serif']
+COLOR SYSTEM
+
+Background: black (#000000) globally, #101010 for the About card, #212121 for Features cards
+Primary text color: #E1E0CC (applied via inline style, slightly different from Tailwind primary)
+Tailwind primary: #DEDBC8 (used for utility classes like text-primary, text-primary/70)
+Gray text: text-gray-400, text-gray-500
+Navbar link color: rgba(225, 224, 204, 0.8) with hover: #E1E0CC
+CUSTOM CSS UTILITIES (index.css)
+
+Two SVG noise texture utilities:
+
+.noise-overlay: fractal noise (baseFrequency: 0.85, numOctaves: 3) used as overlay on hero video
+.bg-noise: fractal noise (baseFrequency: 0.9, numOctaves: 4) used as subtle background in Features section
+Both use inline SVG data URIs with feTurbulence filter.
+
+SECTION 1: HERO
+
+Full viewport height (h-screen). The entire section has p-4 md:p-6 padding creating an inset effect. Inside is a container with rounded-2xl md:rounded-[2rem] and overflow-hidden.
+
+Background video:
+
+URL: https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20260405_170732_8a9ccda6-5cff-4628-b164-059c500a2b41.mp4
+autoPlay loop muted playsInline, object-cover, fills entire container
+Noise overlay on top: .noise-overlay with opacity-[0.7] mix-blend-overlay pointer-events-none
+Gradient overlay: bg-gradient-to-b from-black/30 via-transparent to-black/60
+Navbar:
+
+Absolutely positioned at top center
+Black background pill that hangs from top edge: bg-black rounded-b-2xl md:rounded-b-3xl px-4 py-2 md:px-8
+5 nav items: "Our story", "Collective", "Workshops", "Programs", "Inquiries"
+Text size: text-[10px] sm:text-xs md:text-sm
+Gap between items: gap-3 sm:gap-6 md:gap-12 lg:gap-14
+Link color: rgba(225, 224, 204, 0.8), hover: #E1E0CC (inline styles)
+Hero Content (bottom-aligned):
+
+Absolutely positioned at bottom: absolute bottom-0 left-0 right-0
+12-column grid: left 8 columns for heading, right 4 columns for text + button
+Giant heading "Prisma" using WordsPullUp component:
+Responsive sizes: text-[26vw] sm:text-[24vw] md:text-[22vw] lg:text-[20vw] xl:text-[19vw] 2xl:text-[20vw]
+font-medium leading-[0.85] tracking-[-0.07em]
+Color: #E1E0CC
+Has a superscript asterisk (*) on the final "a" of "Prisma": positioned with absolute top-[0.65em] -right-[0.3em] text-[0.31em]
+Pull-up animation: each word slides up from y:20 with staggered delay of 0.08s, triggered by useInView
+Description paragraph (right column):
+"Prisma is a worldwide network of visual artists, filmmakers and storytellers bound not by place, status or labels but by passion and hunger to unlock potential through our unique perspectives."
+text-primary/70 text-xs sm:text-sm md:text-base, line-height: 1.2
+Framer motion: fade up from y:20, delay 0.5s, custom ease [0.16, 1, 0.3, 1]
+CTA Button "Join the lab":
+Pill shape: bg-primary rounded-full
+Black text, font-medium, text-sm sm:text-base
+Right side has a black circle (bg-black rounded-full w-9 h-9 sm:w-10 sm:h-10) containing a white/cream ArrowRight icon
+Hover: gap increases (hover:gap-3), circle scales up (group-hover:scale-110)
+Framer motion: fade up from y:20, delay 0.7s, same custom ease
+SECTION 2: ABOUT
+
+bg-black, padded section with centered content
+Inner card: bg-[#101010], centered text, max-w-6xl
+Top: small label "Visual arts" in text-primary, text-[10px] sm:text-xs
+Main heading uses WordsPullUpMultiStyle component with 3 segments:
+"I am Marcus Chen," -- font-normal (Almarai)
+"a self-taught director." -- italic font-serif (Instrument Serif italic)
+"I have skills in color grading, visual effects, and narrative design." -- font-normal
+Container: text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl max-w-3xl mx-auto leading-[0.95] sm:leading-[0.9]
+Each word animates in with pull-up effect (y:20 to y:0), staggered at 0.08s delay
+Body paragraph below with scroll-linked character opacity animation:
+Text: "Over the last seven years, I have worked with Parallax, a Berlin-based production house that crafts cinema, series, and Noir Studio in Paris. Together, we have created work that has earned international acclaim at several major festivals."
+text-[#DEDBC8], text-xs sm:text-sm md:text-base
+Each character is individually wrapped in an AnimatedLetter component
+Uses useScroll with target offset ['start 0.8', 'end 0.2']
+Each character's opacity transitions from 0.2 to 1 based on scroll position, creating a progressive text reveal effect
+Character staggering: charProgress = index / totalChars, range [charProgress - 0.1, charProgress + 0.05]
+SECTION 3: FEATURES
+
+min-h-screen bg-black, with subtle .bg-noise overlay at opacity-[0.15]
+Header text uses WordsPullUpMultiStyle:
+Line 1: "Studio-grade workflows for visionary creators." in cream
+Line 2: "Built for pure vision. Powered by art." in text-gray-500
+Both: text-xl sm:text-2xl md:text-3xl lg:text-4xl font-normal
+4-column card grid (lg:h-[480px], gap-3 sm:gap-2 md:gap-1):
+
+Each card has staggered entrance animation: scale from 0.95 + fade in, triggered by useInView (once, margin "-100px"), staggered at 0.15s intervals with ease [0.22, 1, 0.36, 1].
+
+Card 1 - Video card: Full video background (URL: https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20260406_133058_0504132a-0cf3-4450-a370-8ea3b05c95d4.mp4), autoPlay loop muted playsInline, object-cover. Bottom text: "Your creative canvas." in #E1E0CC.
+
+Card 2 - "Project Storyboard." (01): bg-[#212121], small image icon at top (https://images.higgs.ai/?default=1&output=webp&url=https%3A%2F%2Fd8j0ntlcm91z4.cloudfront.net%2Fuser_38xzZboKViGWJOttwIXH07lWA1P%2Fhf_20260405_171918_4a5edc79-d78f-4637-ac8b-53c43c220606.png&w=1280&q=85, 10x10 sm:12x12 rounded), title with number, 4 checklist items with green Check icons, "Learn more" link with rotated arrow (-45deg).
+
+Card 3 - "Smart Critiques." (02): Same layout as Card 2. Icon: https://images.higgs.ai/?default=1&output=webp&url=https%3A%2F%2Fd8j0ntlcm91z4.cloudfront.net%2Fuser_38xzZboKViGWJOttwIXH07lWA1P%2Fhf_20260405_171741_ed9845ab-f5b2-4018-8ce7-07cc01823522.png&w=1280&q=85. 3 checklist items about AI analysis, creative notes, tool integrations.
+
+Card 4 - "Immersion Capsule." (03): Same layout. Icon: https://images.higgs.ai/?default=1&output=webp&url=https%3A%2F%2Fd8j0ntlcm91z4.cloudfront.net%2Fuser_38xzZboKViGWJOttwIXH07lWA1P%2Fhf_20260405_171809_f56666dc-c099-4778-ad82-9ad4f209567b.png&w=1280&q=85. 3 checklist items about notification silencing, ambient soundscapes, schedule syncing.
+
+All feature card checklist items use Check icon from lucide-react in text-primary color, with text-gray-400 description text. "Learn more" buttons use ArrowRight rotated -45deg.
+
+SHARED ANIMATION COMPONENTS
+
+WordsPullUp: Splits text by spaces, each word is a motion.span that slides up (y:20 to 0) with staggered delay. Uses useInView (once: true). Supports showAsterisk prop that adds a superscript * after the last character "a" of the final word.
+
+WordsPullUpMultiStyle: Takes an array of {text, className} segments, splits all into individual words preserving per-word className. Same pull-up animation. Words are wrapped in inline-flex flex-wrap justify-center.
+
+RESPONSIVE BREAKPOINTS
+
+The page is fully responsive across mobile, tablet, and desktop. Cards in Features switch from 1-col (mobile) to 2-col (md) to 4-col (lg). Hero text scales from 26vw down to 19vw. Navbar items compress with smaller gaps on mobile. All padding, font sizes, and spacing use Tailwind responsive prefixes (sm/md/lg/xl/2xl).
+
+TECH STACK
+
+Vite + React 18 + TypeScript
+Tailwind CSS 3
+framer-motion (for all animations: pull-up text, fade-in, scroll-linked opacity, card entrances)
+lucide-react (ArrowRight, Check icons)`,
   },
   {
-    Icon: Bot,
-    title: "AI Agent Prompts",
-    desc: "Prompt structures for planning, coding, researching, debugging, and automating repetitive tasks.",
-    pill: "Agent Workflow",
-    prompt: `GANTI dengan prompt ChatGPT kamu untuk AI Agent Workflow.\n\nContoh struktur:\nRole: Kamu adalah AI agent planner.\nGoal: [tujuan otomatisasi]\nSteps: pecah task jadi langkah kecil dan urutkan prioritas.\nTools available: [list tools/API]\nOutput format: rencana eksekusi langkah demi langkah.`,
+    Icon: Code2,
+    title: "Web Prompts",
+    desc: "This is a spec for a full-screen dark hero section (deep blue-purple background) with a looping fade-in/fade-out background video controlled via requestAnimationFrame, a navbar with dropdown nav items and a "Sign Up" button, a huge "Power AI" headline (with "AI" in an indigo-purple-amber gradient), a subtitle and "Schedule a Consult" CTA, and an infinite-scrolling logo marquee at the bottom showcasing brand names with liquid-glass icon styling.",
+    pill: "Get Prompt",
+    prompt: `Create a full-screen dark hero section with a looping background video, navbar, headline, subtitle, CTA button, and a logo marquee at the bottom. Here are the exact specifications:
+
+Theme & Colors (index.css CSS variables):
+Background: 260 87% 3% (deep dark blue-purple)
+Foreground: 40 6% 95% (off-white)
+Hero sub text: 40 6% 82%
+Body font: Geist Sans (via @fontsource/geist-sans)
+Headline font: General Sans (loaded from Fontshare: https://api.fontshare.com/v2/css?f[]=general-sans@400,500,600,700&display=swap)
+
+Background Video (Index page wrapper):
+Video URL: https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20260328_065045_c44942da-53c6-4804-b734-f9e07fc22e08.mp4
+Positioned absolute inset-0 w-full h-full object-cover behind all content
+Starts with opacity: 0
+Custom JS-controlled fade loop: 0.5s fade-in at start, 0.5s fade-out at end, using requestAnimationFrame. On ended, opacity resets to 0, waits 100ms, then replays from 0
+No gradient overlays on the video
+The wrapper div has overflow-hidden, the hero content sits in a relative z-10 div above
+
+Blurred overlay shape (centered behind content):
+w-[984px] h-[527px] opacity-90 bg-gray-950 blur-[82px]
+Absolutely positioned at top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2
+pointer-events-none
+The hero section has overflow-visible so the blur is not clipped
+
+Navbar:
+Full width, py-5 px-8, flex row with justify-between
+Left: logo image (src/assets/logo.png, height 32px)
+Center: nav items — "Features" (with ChevronDown), "Solutions", "Plans", "Learning" (with ChevronDown). Each is a button with text-foreground/90 and hover transition
+Right: "Sign Up" button using heroSecondary variant, rounded-full px-4 py-2
+Below navbar: a 1px divider line with gradient from-transparent via-foreground/20 to-transparent, offset mt-[3px]
+
+Hero content (vertically centered in remaining space via flex-1):
+Headline: "Power AI" at text-[220px], font-normal, leading-[1.02], tracking-[-0.024em], font-family General Sans
+"Power " is plain text-foreground
+"AI" uses bg-clip-text text-transparent with backgroundImage: linear-gradient(to left, #6366f1, #a855f7, #fcd34d) (indigo → purple → amber)
+Subtitle: "The most powerful AI ever deployed / in talent acquisition" — text-hero-sub, text-lg, leading-8, max-w-md, mt-[9px], opacity-80
+CTA: "Schedule a Consult" button, heroSecondary variant, px-[29px] py-[24px], mt-[25px]
+
+Logo marquee (pinned to bottom of hero, pb-10):
+Container: max-w-5xl mx-auto
+Left side: static text "Relied on by brands / across the globe" in text-foreground/50 text-sm
+Right side: infinite scrolling marquee with logos: Vortex, Nimbus, Prysma, Cirrus, Kynder, Halcyn (duplicated for seamless loop)
+Each logo: a liquid-glass 24x24 rounded-lg icon showing the first letter, plus the name in text-base font-semibold text-foreground
+Marquee animation: translateX(0%) → translateX(-50%), 20s linear infinite
+gap-16 between logos, gap-12 between text and marquee
+
+Liquid glass utility class (in index.css):
+.liquid-glass { background: rgba(255, 255, 255, 0.01); background-blend-mode: luminosity; backdrop-filter: blur(4px); border: none; box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.1); position: relative; overflow: hidden; }
+.liquid-glass::before { content: ""; position: absolute; inset: 0; border-radius: inherit; padding: 1.4px; background: linear-gradient(180deg, rgba(255,255,255,0.45) 0%, rgba(255,255,255,0.15) 20%, rgba(255,255,255,0) 40%, rgba(255,255,255,0) 60%, rgba(255,255,255,0.15) 80%, rgba(255,255,255,0.45) 100%); -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0); -webkit-mask-composite: xor; mask-composite: exclude; pointer-events: none; }
+
+Section structure: min-h-screen flex flex-col — navbar at top, content centered via flex-1 flex items-center justify-center, marquee at bottom.`,
   },
   {
-    Icon: Video,
+    Icon: Code2,
     title: "Content Creation Prompts",
     desc: "Prompt systems for Reels, Shorts, carousel posts, hooks, scripts, and content calendars.",
     pill: "Social Media",
     prompt: `GANTI dengan prompt ChatGPT kamu untuk Content Creation.\n\nContoh struktur:\nRole: Kamu adalah content strategist.\nTopic: [topik konten]\nFormat: Reels/Shorts 30 detik.\nHook: buat 3 opsi hook pembuka yang kuat.\nOutput format: script + caption + hashtag.`,
   },
   {
-    Icon: Zap,
+    Icon: Code2,
     title: "Productivity Prompts",
     desc: "Prompts to organize ideas, build learning plans, summarize resources, and execute faster.",
     pill: "Daily System",
@@ -1604,7 +1776,7 @@ function PromptLibraryCard({ Icon, title, desc, pill, prompt }) {
             <code>{prompt}</code>
           </pre>
         </div>
-        <p style={{ fontSize:13,color:"rgba(255,255,255,0.50)",lineHeight:1.6,marginTop:14 }}>Copy prompt ini lalu paste ke ChatGPT.</p>
+        <p style={{ fontSize:13,color:"rgba(255,255,255,0.50)",lineHeight:1.6,marginTop:14 }}>Copy prompt ini lalu paste ke Claude AI.</p>
       </BottomSheetModal>
     </>
   );
@@ -1618,8 +1790,8 @@ function PromptLibrarySection() {
       </div>
       <div style={{ maxWidth:1152,margin:"0 auto" }}>
         <p style={{ fontSize:11,textTransform:"uppercase",letterSpacing:"0.3em",color:"#e8702a",fontWeight:600,marginBottom:16 }}>Prompt Library</p>
-        <h2 style={{ fontSize:"clamp(32px,5vw,58px)",fontWeight:500,letterSpacing:"-0.06em",lineHeight:1,maxWidth:680,marginBottom:16 }}>Ready-to-use prompts for ChatGPT.</h2>
-        <p style={{ color:"rgba(255,255,255,0.60)",fontSize:15,lineHeight:1.65,maxWidth:520,marginBottom:48 }}>Prompt systems yang aku buat sendiri — tinggal copy, paste ke ChatGPT, langsung jalan.</p>
+        <h2 style={{ fontSize:"clamp(32px,5vw,58px)",fontWeight:500,letterSpacing:"-0.06em",lineHeight:1,maxWidth:680,marginBottom:16 }}>Ready-to-use prompts for Claude AI.</h2>
+        <p style={{ color:"rgba(255,255,255,0.60)",fontSize:15,lineHeight:1.65,maxWidth:520,marginBottom:48 }}>Prompt systems yang aku buat sendiri tinggal copy, paste ke Claude AI, langsung jalan.</p>
         <div style={{ display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(230px,1fr))",gap:16 }}>
           {CHATGPT_PROMPTS.map(c => <PromptLibraryCard key={c.title} {...c}/>)}
         </div>
