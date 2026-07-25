@@ -7,7 +7,7 @@ const BG_IMAGE_1 =
   "https://images.higgs.ai/?default=1&output=webp&url=https%3A%2F%2Fd8j0ntlcm91z4.cloudfront.net%2Fuser_38xzZboKViGWJOttwIXH07lWA1P%2Fhf_20260609_195923_b0ba8ace-1d1d-4f2c-9a28-1ab84b330680.png&w=1280&q=85";
 const BG_IMAGE_2 =
   "https://images.higgs.ai/?default=1&output=webp&url=https%3A%2F%2Fd8j0ntlcm91z4.cloudfront.net%2Fuser_38xzZboKViGWJOttwIXH07lWA1P%2Fhf_20260609_201152_bba90a12-bf12-459f-91f0-51f237dbaf3b.png&w=1280&q=85";
-const PROFILE_PHOTO = "/Zae.jpg";
+const PROFILE_PHOTO = "/x.jpg";
 
 const SPOTLIGHT_R = 260;
 
@@ -1046,11 +1046,103 @@ function PromptsSection() {
         <ScrollSpin size={240} reverse variant="orbit" />
       </div>
       <div style={{ maxWidth:1152,margin:"0 auto" }}>
-        <p style={{ fontSize:11,textTransform:"uppercase",letterSpacing:"0.3em",color:"#e8702a",fontWeight:600,marginBottom:16 }}>Prompt Library</p>
-        <h2 style={{ fontSize:"clamp(32px,5vw,58px)",fontWeight:500,letterSpacing:"-0.06em",lineHeight:1,maxWidth:680,marginBottom:16 }}>Ready-to-use prompts for modern builders.</h2>
-        <p style={{ color:"rgba(255,255,255,0.60)",fontSize:15,lineHeight:1.65,maxWidth:520,marginBottom:48 }}>Explore prompt systems designed for web development, AI agents, content creation, automation, and productivity.</p>
+        <p style={{ fontSize:11,textTransform:"uppercase",letterSpacing:"0.3em",color:"#e8702a",fontWeight:600,marginBottom:16 }}>Wokwi Projects</p>
+        <h2 style={{ fontSize:"clamp(32px,5vw,58px)",fontWeight:500,letterSpacing:"-0.06em",lineHeight:1,maxWidth:680,marginBottom:16 }}>Circuits & code built on Wokwi.</h2>
+        <p style={{ color:"rgba(255,255,255,0.60)",fontSize:15,lineHeight:1.65,maxWidth:520,marginBottom:48 }}>Embedded systems experiments — simulations, sensors, and automation logic, simulated and tested on wokwi.com.</p>
         <div style={{ display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(230px,1fr))",gap:16 }}>
           {WOKWI_PROJECTS.map(c => <WokwiCard key={c.title} {...c}/>)}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+// ─── ChatGPT Prompt Library ────────────────────────────────────────────────────
+// GANTI konten "prompt" di bawah ini dengan prompt ChatGPT asli yang kamu buat.
+const CHATGPT_PROMPTS = [
+  {
+    Icon: Code2,
+    title: "Web Development Prompts",
+    desc: "Prompt structures for building landing pages, full-stack apps, UI systems, and product prototypes.",
+    pill: "React · Vite · Tailwind",
+    prompt: `GANTI dengan prompt ChatGPT kamu untuk Web Development.\n\nContoh struktur:\nRole: Kamu adalah senior frontend engineer.\nContext: [jelaskan project/produk]\nTask: Bangun landing page dengan section hero, fitur, dan CTA menggunakan React + Tailwind.\nConstraints: [tech stack, aksesibilitas, responsif]\nOutput format: kode lengkap per file.`,
+  },
+  {
+    Icon: Bot,
+    title: "AI Agent Prompts",
+    desc: "Prompt structures for planning, coding, researching, debugging, and automating repetitive tasks.",
+    pill: "Agent Workflow",
+    prompt: `GANTI dengan prompt ChatGPT kamu untuk AI Agent Workflow.\n\nContoh struktur:\nRole: Kamu adalah AI agent planner.\nGoal: [tujuan otomatisasi]\nSteps: pecah task jadi langkah kecil dan urutkan prioritas.\nTools available: [list tools/API]\nOutput format: rencana eksekusi langkah demi langkah.`,
+  },
+  {
+    Icon: Video,
+    title: "Content Creation Prompts",
+    desc: "Prompt systems for Reels, Shorts, carousel posts, hooks, scripts, and content calendars.",
+    pill: "Social Media",
+    prompt: `GANTI dengan prompt ChatGPT kamu untuk Content Creation.\n\nContoh struktur:\nRole: Kamu adalah content strategist.\nTopic: [topik konten]\nFormat: Reels/Shorts 30 detik.\nHook: buat 3 opsi hook pembuka yang kuat.\nOutput format: script + caption + hashtag.`,
+  },
+  {
+    Icon: Zap,
+    title: "Productivity Prompts",
+    desc: "Prompts to organize ideas, build learning plans, summarize resources, and execute faster.",
+    pill: "Daily System",
+    prompt: `GANTI dengan prompt ChatGPT kamu untuk Productivity.\n\nContoh struktur:\nRole: Kamu adalah personal productivity coach.\nGoal: [target belajar/kerja]\nTimeframe: [durasi]\nOutput format: rencana harian/mingguan + checklist prioritas.`,
+  },
+];
+
+function PromptLibraryCard({ Icon, title, desc, pill, prompt }) {
+  const [h, setH] = useState(false);
+  const [open, setOpen] = useState(false);
+  const [copied, setCopied] = useState(false);
+
+  const handleCopy = () => {
+    navigator.clipboard?.writeText(prompt).then(() => {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 1500);
+    });
+  };
+
+  return (
+    <>
+      <div onMouseEnter={()=>setH(true)} onMouseLeave={()=>setH(false)}
+        onClick={() => setOpen(true)}
+        className="glass-panel"
+        style={{ borderRadius:32,border:h?"1px solid rgba(232,112,42,0.40)":"1px solid rgba(255,255,255,0.18)",background:h?"rgba(255,255,255,0.12)":"rgba(255,255,255,0.07)",padding:24,backdropFilter:"blur(20px) saturate(180%)",WebkitBackdropFilter:"blur(20px) saturate(180%)",boxShadow:h?"0 8px 32px rgba(0,0,0,0.30), inset 0 1px 0 rgba(255,255,255,0.20)":"0 4px 24px rgba(0,0,0,0.20), inset 0 1px 0 rgba(255,255,255,0.12)",transition:"all 0.3s",transform:h?"translateY(-4px)":"translateY(0)",cursor:"pointer" }}>
+        <div style={{ width:44,height:44,borderRadius:"50%",background:"rgba(232,112,42,0.15)",color:"#e8702a",display:"flex",alignItems:"center",justifyContent:"center",marginBottom:24 }}><Icon size={20}/></div>
+        <p style={{ fontSize:17,fontWeight:600,letterSpacing:"-0.03em" }}>{title}</p>
+        <p style={{ fontSize:14,color:"rgba(255,255,255,0.60)",lineHeight:1.6,marginTop:12 }}>{desc}</p>
+        <span style={{ display:"inline-flex",alignItems:"center",gap:6,marginTop:24,fontSize:12,color:"rgba(255,255,255,0.70)",border:"1px solid rgba(255,255,255,0.15)",borderRadius:9999,padding:"4px 12px" }}>{pill}</span>
+      </div>
+
+      <BottomSheetModal open={open} onClose={() => setOpen(false)}>
+        <h3 style={{ fontSize:20,fontWeight:600,marginBottom:16,paddingRight:36 }}>{title}</h3>
+        <div style={{ position:"relative" }}>
+          <button onClick={handleCopy}
+            style={{ position:"absolute",top:10,right:10,display:"flex",alignItems:"center",gap:6,fontSize:12,padding:"6px 12px",borderRadius:8,background:"rgba(255,255,255,0.08)",border:"1px solid rgba(255,255,255,0.15)",color:"#fff",cursor:"pointer" }}>
+            {copied ? <Check size={13}/> : <Copy size={13}/>} {copied ? "Copied" : "Copy"}
+          </button>
+          <pre style={{ margin:0,padding:"20px 16px",borderRadius:16,background:"rgba(0,0,0,0.45)",border:"1px solid rgba(255,255,255,0.10)",overflowX:"auto",whiteSpace:"pre-wrap",fontSize:13,lineHeight:1.7,color:"rgba(255,255,255,0.85)",fontFamily:"'SFMono-Regular',Consolas,monospace" }}>
+            <code>{prompt}</code>
+          </pre>
+        </div>
+        <p style={{ fontSize:13,color:"rgba(255,255,255,0.50)",lineHeight:1.6,marginTop:14 }}>Copy prompt ini lalu paste ke ChatGPT.</p>
+      </BottomSheetModal>
+    </>
+  );
+}
+
+function PromptLibrarySection() {
+  return (
+    <section id="prompt-library" style={{ position:"relative",background:"#000",color:"#fff",padding:"96px 56px",overflow:"hidden" }}>
+      <div style={{ position:"absolute",top:"8%",left:"-5%",opacity:0.7 }}>
+        <ScrollSpin size={220} variant="grid" />
+      </div>
+      <div style={{ maxWidth:1152,margin:"0 auto" }}>
+        <p style={{ fontSize:11,textTransform:"uppercase",letterSpacing:"0.3em",color:"#e8702a",fontWeight:600,marginBottom:16 }}>Prompt Library</p>
+        <h2 style={{ fontSize:"clamp(32px,5vw,58px)",fontWeight:500,letterSpacing:"-0.06em",lineHeight:1,maxWidth:680,marginBottom:16 }}>Ready-to-use prompts for ChatGPT.</h2>
+        <p style={{ color:"rgba(255,255,255,0.60)",fontSize:15,lineHeight:1.65,maxWidth:520,marginBottom:48 }}>Prompt systems yang aku buat sendiri — tinggal copy, paste ke ChatGPT, langsung jalan.</p>
+        <div style={{ display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(230px,1fr))",gap:16 }}>
+          {CHATGPT_PROMPTS.map(c => <PromptLibraryCard key={c.title} {...c}/>)}
         </div>
       </div>
     </section>
@@ -1371,6 +1463,7 @@ export default function App() {
         <CertificationsSection />
         <ToolsSection />
         <PromptsSection />
+        <PromptLibrarySection />
         <WorkflowSection />
         <AccessSection />
         <CTASection />
