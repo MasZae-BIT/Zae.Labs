@@ -891,11 +891,11 @@ function ToolsSection() {
 const WOKWI_PROJECTS = [
   {
     Icon: Code2,
-    title: "Web Development Prompts",
-    desc: "Prompt structures for building landing pages, full-stack apps, UI systems, and product prototypes.",
-    pill: "React · Vite · Tailwind",
-    image: "https://images.unsplash.com/photo-1518770660439-4636190af475?w=960&h=540&fit=crop&q=80",
-    code: `//code by Irsyaz07
+    title: "Birthday Greetings Using Arduino",
+    desc: "A creative Arduino project to display or play custom birthday greetings.",
+    pill: "Get Code",
+    image: "/HBD.jpg",
+    code: `//code by IrsyaZaelani
 
 #include <Wire.h>
 #include <LiquidCrystal_I2C.h>
