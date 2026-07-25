@@ -7,7 +7,7 @@ const BG_IMAGE_1 =
   "https://images.higgs.ai/?default=1&output=webp&url=https%3A%2F%2Fd8j0ntlcm91z4.cloudfront.net%2Fuser_38xzZboKViGWJOttwIXH07lWA1P%2Fhf_20260609_195923_b0ba8ace-1d1d-4f2c-9a28-1ab84b330680.png&w=1280&q=85";
 const BG_IMAGE_2 =
   "https://images.higgs.ai/?default=1&output=webp&url=https%3A%2F%2Fd8j0ntlcm91z4.cloudfront.net%2Fuser_38xzZboKViGWJOttwIXH07lWA1P%2Fhf_20260609_201152_bba90a12-bf12-459f-91f0-51f237dbaf3b.png&w=1280&q=85";
-const PROFILE_PHOTO = "/x.jpg";
+const PROFILE_PHOTO = "/Zae.jpg";
 
 const SPOTLIGHT_R = 260;
 
@@ -668,10 +668,13 @@ function AboutSection() {
 
 // ─── Experience Section ───────────────────────────────────────────────────────
 const EXPERIENCES = [
-  { title:"LPK Tepi Sawah Volunteer", org:"IPB University", period:"Present", desc:"Actively volunteering in the Computer Science community, focusing on teaching basic things to children through play and participating in direct field activities." },
+  { title:"Staf of IT Today 2026", org:"IPB University", period:"Present", desc:"Actively volunteering in the Computer Science community, focusing on teaching basic things to children through play and participating in direct field activities." },
   { title:"IPB Archery", org:"IPB University", period:"Present", desc:"Active as a member of the IPB Archery community, focusing on mastering basic archery techniques through regular practice and actively participating in community activities in the field." },
+  { title:"LPK Tepi Sawah Volunteer", org:"IPB University", period:"Present", desc:"Actively volunteering in the Computer Science community, focusing on teaching basic things to children through play and participating in direct field activities." },
   { title:"Head of Robotic Club", org:"SMAN 28 Kab. Tangerang", period:"Jun 2023 – Aug 2024", desc:"Led the high school robotics club and successfully engineered a Line Follower Robot. Fostered leadership, teamwork, and strong hardware-software integration skills." },
   { title:"Member of Dastha Research Team", org:"SMAN 28 Kab. Tangerang", period:"Jun 2023 – Jul 2024", desc:"Actively contributed to the research team. Applied strong analytical and teamwork skills to conduct studies, gather data, and develop innovative solutions." },
+  { title:"Staf of Gerakan Pelajar Anti Korupsi", org:"SMAN 28 Kab. Tangerang", period:"May 2023 - Jun 2024", desc:"Led the high school robotics club and successfully engineered a Line Follower Robot. Fostered leadership, teamwork, and strong hardware-software integration skills." },
+  { title:"Staf of Karate D'Astha", org:"SMAN 28 Kab. Tangerang", period:"Feb 2023 - Apr 2024 ", desc:"Actively contributed to the research team. Applied strong analytical and teamwork skills to conduct studies, gather data, and develop innovative solutions." },
 ];
 
 function ExperienceGroupCard({ org, meta, items }) {
@@ -892,7 +895,179 @@ const WOKWI_PROJECTS = [
     desc: "Prompt structures for building landing pages, full-stack apps, UI systems, and product prototypes.",
     pill: "React · Vite · Tailwind",
     image: "https://images.unsplash.com/photo-1518770660439-4636190af475?w=960&h=540&fit=crop&q=80",
-    code: `// GANTI dengan kode Wokwi kamu\n#include <Arduino.h>\n\nvoid setup() {\n  Serial.begin(115200);\n  pinMode(LED_BUILTIN, OUTPUT);\n}\n\nvoid loop() {\n  digitalWrite(LED_BUILTIN, HIGH);\n  delay(500);\n  digitalWrite(LED_BUILTIN, LOW);\n  delay(500);\n}`,
+    code: `//code by Irsyaz07
+
+#include <Wire.h>
+#include <LiquidCrystal_I2C.h>
+
+LiquidCrystal_I2C lcd(0x27, 16, 2);
+#define NOTE_B0  31
+#define NOTE_C1  33
+#define NOTE_CS1 35
+#define NOTE_D1  37
+#define NOTE_DS1 39
+#define NOTE_E1  41
+#define NOTE_F1  44
+#define NOTE_FS1 46
+#define NOTE_G1  49
+#define NOTE_GS1 52
+#define NOTE_A1  55
+#define NOTE_AS1 58
+#define NOTE_B1  62
+#define NOTE_C2  65
+#define NOTE_CS2 69
+#define NOTE_D2  73
+#define NOTE_DS2 78
+#define NOTE_E2  82
+#define NOTE_F2  87
+#define NOTE_FS2 93
+#define NOTE_G2  98
+#define NOTE_GS2 104
+#define NOTE_A2  110
+#define NOTE_AS2 117
+#define NOTE_B2  123
+#define NOTE_C3  131
+#define NOTE_CS3 139
+#define NOTE_D3  147
+#define NOTE_DS3 156
+#define NOTE_E3  165
+#define NOTE_F3  175
+#define NOTE_FS3 185
+#define NOTE_G3  196
+#define NOTE_GS3 208
+#define NOTE_A3  220
+#define NOTE_AS3 233
+#define NOTE_B3  247
+#define NOTE_C4  262
+#define NOTE_CS4 277
+#define NOTE_D4  294
+#define NOTE_DS4 311
+#define NOTE_E4  330
+#define NOTE_F4  349
+#define NOTE_FS4 370
+#define NOTE_G4  392
+#define NOTE_GS4 415
+#define NOTE_A4  440
+#define NOTE_AS4 466
+#define NOTE_B4  494
+#define NOTE_C5  523
+#define NOTE_CS5 554
+#define NOTE_D5  587
+#define NOTE_DS5 622
+#define NOTE_E5  659
+#define NOTE_F5  698
+#define NOTE_FS5 740
+#define NOTE_G5  784
+#define NOTE_GS5 831
+#define NOTE_A5  880
+#define NOTE_AS5 932
+#define NOTE_B5  988
+#define NOTE_C6  1047
+#define NOTE_CS6 1109
+#define NOTE_D6  1175
+#define NOTE_DS6 1245
+#define NOTE_E6  1319
+#define NOTE_F6  1397
+#define NOTE_FS6 1480
+#define NOTE_G6  1568
+#define NOTE_GS6 1661
+#define NOTE_A6  1760
+#define NOTE_AS6 1865
+#define NOTE_B6  1976
+#define NOTE_C7  2093
+#define NOTE_CS7 2217
+#define NOTE_D7  2349
+#define NOTE_DS7 2489
+#define NOTE_E7  2637
+#define NOTE_F7  2794
+#define NOTE_FS7 2960
+#define NOTE_G7  3136
+#define NOTE_GS7 3322
+#define NOTE_A7  3520
+#define NOTE_AS7 3729
+#define NOTE_B7  3951
+#define NOTE_C8  4186
+#define NOTE_CS8 4435
+#define NOTE_D8  4699
+#define NOTE_DS8 4978
+#define REST      0
+
+int ledPin = A2;
+
+int tempo = 250;
+
+int buzzer = A3;
+
+int melody[] = {
+
+  // Happy Birthday Note
+
+  NOTE_C4, 4, NOTE_C4, 8,
+  NOTE_D4, -4, NOTE_C4, -4, NOTE_F4, -4,
+  NOTE_E4, -2, NOTE_C4, 4, NOTE_C4, 8,
+  NOTE_D4, -4, NOTE_C4, -4, NOTE_G4, -4,
+  NOTE_F4, -2, NOTE_C4, 4, NOTE_C4, 8,
+
+  NOTE_C5, -4, NOTE_A4, -4, NOTE_F4, -4,
+  NOTE_E4, -4, NOTE_D4, -4, NOTE_AS4, 4, NOTE_AS4, 8,
+  NOTE_A4, -4, NOTE_F4, -4, NOTE_G4, -4,
+  NOTE_F4, -2,
+
+  NOTE_C4, 4, NOTE_C4, 8,
+  NOTE_D4, -4, NOTE_C4, -4, NOTE_F4, -4,
+  NOTE_E4, -2, NOTE_C4, 4, NOTE_C4, 8,
+  NOTE_D4, -4, NOTE_C4, -4, NOTE_G4, -4,
+  NOTE_F4, -2, NOTE_C4, 4, NOTE_C4, 8,
+
+  NOTE_C5, -4, NOTE_A4, -4, NOTE_F4, -4,
+  NOTE_E4, -4, NOTE_D4, -4, NOTE_AS4, 4, NOTE_AS4, 8,
+  NOTE_A4, -4, NOTE_F4, -4, NOTE_G4, -4,
+  NOTE_F4, -2,
+
+};
+
+int notes = sizeof(melody) / sizeof(melody[0]) / 2;
+
+int wholenote = (60000 * 4) / tempo;
+
+int divider = 0, noteDuration = 0;
+
+void setup() {
+
+  lcd.init();
+  lcd.backlight();
+  lcd.setCursor(0, 0);
+  lcd.print("Happy Birthday !");
+  lcd.setCursor(0, 1);
+  lcd.print("Pricilia BB");
+
+  for (int thisNote = 0; thisNote < notes * 2; thisNote = thisNote + 2) {
+
+    divider = melody[thisNote + 1];
+    if (divider > 0) {
+      noteDuration = (wholenote) / divider;
+    } else if (divider < 0) {
+      noteDuration = (wholenote) / abs(divider);
+      noteDuration *= 1.5;
+    }
+
+    tone(buzzer, melody[thisNote], noteDuration * 0.9);
+
+    delay(noteDuration);
+
+    noTone(buzzer);
+
+    pinMode(ledPin, OUTPUT);
+
+    digitalWrite(ledPin, HIGH); 
+    delay(noteDuration);          
+    digitalWrite(ledPin, LOW);   
+  }
+}
+
+void loop() {
+
+}}`,
   },
   {
     Icon: Bot,
