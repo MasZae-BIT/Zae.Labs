@@ -7,7 +7,7 @@ const BG_IMAGE_1 =
   "https://images.higgs.ai/?default=1&output=webp&url=https%3A%2F%2Fd8j0ntlcm91z4.cloudfront.net%2Fuser_38xzZboKViGWJOttwIXH07lWA1P%2Fhf_20260609_195923_b0ba8ace-1d1d-4f2c-9a28-1ab84b330680.png&w=1280&q=85";
 const BG_IMAGE_2 =
   "https://images.higgs.ai/?default=1&output=webp&url=https%3A%2F%2Fd8j0ntlcm91z4.cloudfront.net%2Fuser_38xzZboKViGWJOttwIXH07lWA1P%2Fhf_20260609_201152_bba90a12-bf12-459f-91f0-51f237dbaf3b.png&w=1280&q=85";
-const PROFILE_PHOTO = "/Zae.jpg";
+const PROFILE_PHOTO = "/x.jpg";
 
 const SPOTLIGHT_R = 260;
 
@@ -474,15 +474,15 @@ function PortfolioHero() {
 
   return (
     <section id="portfolio" style={{ position:"relative",background:"#000",color:"#fff",padding:"120px 56px 80px",minHeight:"100vh",display:"flex",alignItems:"center",overflow:"hidden" }}>
-      <div style={{ position:"absolute",top:"10%",left:"2%",opacity:0.85 }}>
+      <div className="portfolio-deco-orbit" style={{ position:"absolute",top:"10%",left:"2%",opacity:0.85 }}>
         <ScrollSpin size={180} reverse variant="orbit" />
       </div>
-      <div style={{ position:"absolute",bottom:"6%",right:"3%",opacity:0.7 }}>
+      <div className="portfolio-deco-triangle" style={{ position:"absolute",bottom:"6%",right:"3%",opacity:0.7 }}>
         <ScrollSpin size={150} accent="#ffffff" dim={0.7} variant="triangle" />
       </div>
       <div id="portfolio-hero-trigger" style={{ maxWidth:1152,margin:"0 auto",width:"100%",display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(300px,1fr))",gap:64,alignItems:"center" }}>
         {/* Left text */}
-        <div>
+        <div className="portfolio-text-col">
           <p style={{ fontSize:11,textTransform:"uppercase",letterSpacing:"0.3em",color:"#e8702a",fontWeight:600,marginBottom:20 }}>Portfolio</p>
           <h2 style={{ fontSize:"clamp(36px,5vw,60px)",fontWeight:600,letterSpacing:"-0.05em",lineHeight:1.05,marginBottom:12 }}>
             Hello, I'm <span style={{ fontWeight:700 }}>Irsya Zaelani</span>
@@ -506,16 +506,26 @@ function PortfolioHero() {
         </div>
 
         {/* Right photo */}
-        <div style={{ display:"flex",justifyContent:"center",alignItems:"center" }}>
-          <div className="float-anim" style={{ position:"relative" }}>
+        <div className="portfolio-photo-col" style={{ display:"flex",justifyContent:"center",alignItems:"center" }}>
+          <div className="float-anim portfolio-photo-wrap" style={{ position:"relative" }}>
             <div style={{ position:"absolute",inset:-2,borderRadius:20,background:"linear-gradient(135deg,rgba(232,112,42,0.4),rgba(255,255,255,0.05))",zIndex:0 }} />
             <img src={PROFILE_PHOTO} alt="Irsya Zaelani"
+              className="portfolio-photo-img"
               style={{ position:"relative",zIndex:1,width:320,height:320,objectFit:"cover",borderRadius:18,border:"1px solid rgba(255,255,255,0.10)",boxShadow:"0 24px 60px rgba(0,0,0,0.6)" }}
               onError={e => { e.currentTarget.style.display="none"; }}
             />
           </div>
         </div>
       </div>
+
+      <style>{`
+        @media (max-width: 640px) {
+          .portfolio-deco-orbit, .portfolio-deco-triangle { display:none !important; }
+          .portfolio-photo-img { width:220px !important; height:220px !important; }
+          .portfolio-photo-col { order:1; }
+          .portfolio-text-col { order:2; }
+        }
+      `}</style>
     </section>
   );
 }
