@@ -2466,6 +2466,7 @@ export default function App() {
         <AboutSection />
         <ExperienceSection />
         <CertificationsSection />
+        <GalleryScrollSection />
         <ToolsSection />
         <PromptsSection />
         <PromptLibrarySection />
