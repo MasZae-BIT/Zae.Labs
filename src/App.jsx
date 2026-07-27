@@ -495,6 +495,7 @@ function HeroSection({ unlocked, setUnlocked }) {
           Ideas engineered into real digital products.
         </span>
         <span className="hero-anim hero-fade" style={{ display:"block",marginTop:10,fontSize:"clamp(13px,1.6vw,16px)",color:"rgba(255,255,255,0.50)",letterSpacing:"0.01em",animationDelay:"0.55s",pointerEvents:"none" }}>
+          Do your best today.
         </span>
       </div>
 
@@ -913,12 +914,15 @@ function GalleryScrollSection() {
   }, [scrollYProgress]);
 
   return (
-    <section style={{ position:"relative", background:"#050505", color:"#fff", overflow:"hidden" }}>
+    <section style={{ position:"relative", background:"#050505", color:"#fff" }}>
       {/* Container tinggi = "jarak scroll" yang harus dilewati. Makin besar,
-          makin banyak scroll yang dibutuhkan sebelum section ini selesai. */}
+          makin banyak scroll yang dibutuhkan sebelum section ini selesai.
+          PENTING: section & div ini sengaja TIDAK overflow:hidden, karena
+          overflow:hidden di ancestor mana pun bikin position:sticky di
+          bawah ini mati (browser jadi nggak nge-pin, malah lompat scroll). */}
       <div ref={containerRef} style={{ position:"relative", height: isMobile ? "260vh" : "320vh" }}>
         {/* Sticky = nempel di layar selama masih di dalam tinggi container di atas */}
-        <div style={{ position:"sticky", top:0, height:"100vh", display:"flex", alignItems:"center", justifyContent:"center", overflow:"hidden", padding: isMobile ? "8px" : "8px 56px" }}>
+        <div style={{ position:"sticky", top:0, height:"100vh", display:"flex", alignItems:"center", justifyContent:"center", padding: isMobile ? "8px" : "8px 56px" }}>
           <div style={{ width:"100%", maxWidth:1152, margin:"0 auto", position:"relative", perspective:"1000px" }}>
 
             <motion.div style={{ translateY: translate }}>
