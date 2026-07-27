@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from "react";
+import { motion, useScroll, useTransform } from "framer-motion";
 import { Code2, Bot, Video, Zap, Menu, ArrowRight, X, Search, ChevronDown, ChevronUp, ExternalLink, Award, BookOpen, Wrench, GraduationCap, Copy, Check, Cpu } from "lucide-react";
 import { FaDatabase, FaGithub, FaMicroscope, FaRobot, FaCheckCircle, FaSpotify, FaDiscord, FaInstagram, FaTiktok, FaBook, FaGraduationCap, FaTrophy, FaScroll, FaLinkedin, FaTwitter, FaEnvelope } from "react-icons/fa";
 
@@ -843,6 +844,78 @@ const TOOLS = [
   { name:"TikTok DL",      keyword:"tiktok video social download",   href:"https://maszae-bit.github.io/Tiktok-Downloader/", icon:<FaTiktok/> },
   { name:"Journal Search", keyword:"database sql journal search book", href:"https://maszae-bit.github.io/Journal/", icon:<FaBook/> },
 ];
+
+// ─── Gallery Scroll Section (3D tilt scroll animation) ────────────────────────
+// GANTI path di GALLERY_PHOTOS dengan foto kamu sendiri.
+// Taruh file fotonya di folder public/ (sejajar sama favicon.svg / x.jpg),
+// lalu ganti path di bawah ini, misal "/gallery-1.jpg".
+const GALLERY_PHOTOS = [
+  "/gallery-1.jpg",
+  "/gallery-2.jpg",
+  "/gallery-3.jpg",
+  "/gallery-4.jpg",
+];
+
+function GalleryScrollSection() {
+  const containerRef = useRef(null);
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const checkMobile = () => setIsMobile(window.innerWidth <= 768);
+    checkMobile();
+    window.addEventListener("resize", checkMobile);
+    return () => window.removeEventListener("resize", checkMobile);
+  }, []);
+
+  const { scrollYProgress } = useScroll({ target: containerRef });
+  const rotate = useTransform(scrollYProgress, [0, 1], [20, 0]);
+  const scale = useTransform(scrollYProgress, [0, 1], isMobile ? [0.75, 0.92] : [1.05, 1]);
+  const translate = useTransform(scrollYProgress, [0, 1], [0, -80]);
+
+  return (
+    <section style={{ position:"relative", background:"#050505", color:"#fff", overflow:"hidden" }}>
+      <div ref={containerRef} style={{ minHeight: isMobile ? "62rem" : "72rem", display:"flex", alignItems:"center", justifyContent:"center", position:"relative", padding: isMobile ? "8px" : "8px 56px" }}>
+        <div style={{ width:"100%", maxWidth:1152, margin:"0 auto", position:"relative", perspective:"1000px", padding: isMobile ? "48px 0" : "96px 0" }}>
+
+          <motion.div style={{ translateY: translate }}>
+            <div style={{ maxWidth:720, margin:"0 auto", textAlign:"center" }}>
+              <p style={{ fontSize:11,textTransform:"uppercase",letterSpacing:"0.3em",color:"#e8702a",fontWeight:600,marginBottom:16 }}>Gallery</p>
+              <h2 style={{ fontSize:"clamp(30px,4.5vw,52px)",fontWeight:500,letterSpacing:"-0.05em",lineHeight:1.05 }}>
+                Moments behind <span className="font-playfair" style={{ fontWeight:400 }}>the build.</span>
+              </h2>
+              <p style={{ color:"rgba(255,255,255,0.55)",fontSize:15,lineHeight:1.65,marginTop:16 }}>A few snapshots from the process — building, learning, and showing up.</p>
+            </div>
+          </motion.div>
+
+          <motion.div style={{
+            rotateX: rotate,
+            scale,
+            boxShadow:"0 0 #0000004d, 0 9px 20px #0000004a, 0 37px 37px #00000042, 0 84px 50px #00000026, 0 149px 60px #0000000a, 0 233px 65px #00000003",
+            maxWidth:960, margin: isMobile ? "-24px auto 0" : "-48px auto 0",
+            height: isMobile ? "22rem" : "34rem", width:"100%",
+            border:"4px solid rgba(255,255,255,0.14)",
+            padding: isMobile ? 8 : 20,
+            background:"#161616", borderRadius:30,
+          }}>
+            <div style={{ height:"100%", width:"100%", overflow:"hidden", borderRadius:20, background:"#0a0a0a" }}>
+              <div style={{ display:"grid", gridTemplateColumns:"repeat(2,1fr)", gap: isMobile ? 6 : 10, height:"100%" }}>
+                {GALLERY_PHOTOS.map((src, i) => (
+                  <div key={src} style={{ position:"relative", overflow:"hidden", borderRadius:14, background:"#111" }}>
+                    <img src={src} alt={`Zae Labs moment ${i + 1}`}
+                      style={{ width:"100%", height:"100%", objectFit:"cover", display:"block" }}
+                      onError={e => { e.currentTarget.parentElement.style.display = "none"; }}
+                    />
+                  </div>
+                ))}
+              </div>
+            </div>
+          </motion.div>
+
+        </div>
+      </div>
+    </section>
+  );
+}
 
 function ToolsSection() {
   const [query, setQuery] = useState("");
