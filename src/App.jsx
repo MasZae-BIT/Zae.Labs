@@ -495,7 +495,6 @@ function HeroSection({ unlocked, setUnlocked }) {
           Ideas engineered into real digital products.
         </span>
         <span className="hero-anim hero-fade" style={{ display:"block",marginTop:10,fontSize:"clamp(13px,1.6vw,16px)",color:"rgba(255,255,255,0.50)",letterSpacing:"0.01em",animationDelay:"0.55s",pointerEvents:"none" }}>
-          Do your best today.
         </span>
       </div>
 
