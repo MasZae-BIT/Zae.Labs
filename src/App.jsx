@@ -674,10 +674,13 @@ function AboutSection() {
 
 // ─── Experience Section ───────────────────────────────────────────────────────
 const EXPERIENCES = [
+  { title:"Staf of IT Today", org:"IPB University", period:"Present", desc:"Managed run-of-show and scheduling for IT TODAY, a national-scale competition, ensuring smooth coordination across sessions and divisions." },
   { title:"LPK Tepi Sawah Volunteer", org:"IPB University", period:"Present", desc:"Actively volunteering in the Computer Science community, focusing on teaching basic things to children through play and participating in direct field activities." },
   { title:"IPB Archery", org:"IPB University", period:"Present", desc:"Active as a member of the IPB Archery community, focusing on mastering basic archery techniques through regular practice and actively participating in community activities in the field." },
-  { title:"Head of Robotic Club", org:"SMAN 28 Kab. Tangerang", period:"Jun 2023 – Aug 2024", desc:"Led the high school robotics club and successfully engineered a Line Follower Robot. Fostered leadership, teamwork, and strong hardware-software integration skills." },
-  { title:"Member of Dastha Research Team", org:"SMAN 28 Kab. Tangerang", period:"Jun 2023 – Jul 2024", desc:"Actively contributed to the research team. Applied strong analytical and teamwork skills to conduct studies, gather data, and develop innovative solutions." },
+  { title:"Head of Robotic D'Astha", org:"SMAN 28 Kab. Tangerang", period:"Jun 2023 – Aug 2024", desc:"Led the high school robotics club and successfully engineered a Line Follower Robot. Fostered leadership, teamwork, and strong hardware-software integration skills." },
+  { title:"Member of D'Astha Research Team", org:"SMAN 28 Kab. Tangerang", period:"Jun 2023 – Jul 2024", desc:"Actively contributed to the research team. Applied strong analytical and teamwork skills to conduct studies, gather data, and develop innovative solutions." },
+  { title:"Staf of Gerakan pelajar Anti Korupsi", org:"SMAN 28 Kab. Tangerang", period:"May 2023 – Jun 2024", desc:"Supported anti-corruption campaigns and integrity education programs within the school community, helping organize activities that promoted honesty and transparency among students." },
+  { title:"Staf of Karate D'Astha", org:"SMAN 28 Kab. Tangerang", period:"Feb 2023 – Apr 2024", desc:"Trained in the karate extracurricular, building discipline and physical resilience, while also helping coordinate regular training sessions for fellow members." },
 ];
 
 function ExperienceGroupCard({ org, meta, items }) {
