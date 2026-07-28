@@ -873,9 +873,9 @@ const TOOLS = [
 // Taruh file fotonya di folder public/ (sejajar sama favicon.svg / x.jpg),
 // dengan nama persis: moment1.png, moment2.png, moment3.png.
 const GALLERY_PHOTOS = [
-  "/moment1.png",
-  "/moment2.png",
-  "/moment3.png",
+  "/moment1.jpg",
+  "/moment2.jpg",
+  "/moment3.jpg",
 ];
 
 // Titik-titik fase dalam progres scroll section ini (0 → 1):
