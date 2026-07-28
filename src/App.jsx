@@ -869,13 +869,12 @@ const TOOLS = [
 ];
 
 // ─── Gallery Scroll Section (3D tilt scroll animation) ────────────────────────
-// GANTI path di GALLERY_PHOTOS dengan foto kamu sendiri (sekarang 3 foto).
-// Taruh file fotonya di folder public/ (sejajar sama favicon.svg / x.jpg),
-// dengan nama persis: moment1.png, moment2.png, moment3.png.
 const GALLERY_PHOTOS = [
   "/moment1.jpg",
   "/moment2.jpg",
   "/moment3.jpg",
+  "/moment4.jpg",
+  "/moment5.jpg",
 ];
 
 // Titik-titik fase dalam progres scroll section ini (0 → 1):
