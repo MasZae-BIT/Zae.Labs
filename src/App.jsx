@@ -940,7 +940,7 @@ function GalleryScrollSection() {
               scale,
               boxShadow:"0 0 #0000004d, 0 9px 20px #0000004a, 0 37px 37px #00000042, 0 84px 50px #00000026, 0 149px 60px #0000000a, 0 233px 65px #00000003",
               maxWidth:960, margin: isMobile ? "-24px auto 0" : "-48px auto 0",
-              height: isMobile ? "22rem" : "34rem", width:"100%",
+              aspectRatio:"16/9", width:"100%",
               border:"4px solid rgba(255,255,255,0.14)",
               padding: isMobile ? 8 : 20,
               background:"#161616", borderRadius:30,
