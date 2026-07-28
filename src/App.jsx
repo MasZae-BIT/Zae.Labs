@@ -871,11 +871,11 @@ const TOOLS = [
 // ─── Gallery Scroll Section (3D tilt scroll animation) ────────────────────────
 // GANTI path di GALLERY_PHOTOS dengan foto kamu sendiri (sekarang 3 foto).
 // Taruh file fotonya di folder public/ (sejajar sama favicon.svg / x.jpg),
-// lalu ganti path di bawah ini, misal "/gallery-1.jpg".
+// dengan nama persis: moment1.png, moment2.png, moment3.png.
 const GALLERY_PHOTOS = [
-  "/gallery-1.jpg",
-  "/gallery-2.jpg",
-  "/gallery-3.jpg",
+  "/moment1.png",
+  "/moment2.png",
+  "/moment3.png",
 ];
 
 // Titik-titik fase dalam progres scroll section ini (0 → 1):
@@ -2936,21 +2936,21 @@ function IntroLoader({ onDone }) {
 
   useEffect(() => {
     document.body.style.overflow = "hidden";
-    const t1 = setTimeout(() => setPhase("in"), 250);
-    const t2 = setTimeout(() => setPhase("hold"), 2100);
-    const t3 = setTimeout(() => setPhase("exit"), 2550);
-    const t4 = setTimeout(() => onDone(), 3350);
+    const t1 = setTimeout(() => setPhase("in"), 300);
+    const t2 = setTimeout(() => setPhase("hold"), 3100);
+    const t3 = setTimeout(() => setPhase("exit"), 3600);
+    const t4 = setTimeout(() => onDone(), 4500);
 
     let raf;
     const start = Date.now();
-    const duration = 1950;
+    const duration = 2800;
     const tick = () => {
       const elapsed = Date.now() - start;
       const pct = Math.min(100, Math.round((elapsed / duration) * 100));
       setProgress(pct);
       if (pct < 100) raf = requestAnimationFrame(tick);
     };
-    const progressStart = setTimeout(() => { raf = requestAnimationFrame(tick); }, 250);
+    const progressStart = setTimeout(() => { raf = requestAnimationFrame(tick); }, 300);
 
     return () => {
       clearTimeout(t1); clearTimeout(t2); clearTimeout(t3); clearTimeout(t4);
