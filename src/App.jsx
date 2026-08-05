@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { motion, useScroll, useTransform, useSpring } from "framer-motion";
-import { Code2, Bot, Video, Zap, Menu, ArrowRight, X, Search, ChevronDown, ChevronUp, ExternalLink, Award, BookOpen, Wrench, GraduationCap, Copy, Check, Cpu } from "lucide-react";
+import { Code2, Bot, Video, Zap, Menu, ArrowRight, X, Search, ChevronDown, ChevronUp, ExternalLink, Award, BookOpen, Wrench, GraduationCap, Copy, Check, Cpu, Mic, MicOff, Send, Volume2, VolumeX } from "lucide-react";
 import { FaDatabase, FaGithub, FaMicroscope, FaRobot, FaCheckCircle, FaSpotify, FaDiscord, FaInstagram, FaTiktok, FaBook, FaGraduationCap, FaTrophy, FaScroll, FaLinkedin, FaTwitter, FaEnvelope } from "react-icons/fa";
 
 // ─── Asset URLs ───────────────────────────────────────────────────────────────
@@ -2281,35 +2281,197 @@ function WorkflowSection() {
   );
 }
 
-// ─── Access Section ───────────────────────────────────────────────────────────
-function AccessSection() {
+// ─── Zae AI Widget (chat + voice, browser Speech API) ─────────────────────────
+// Belum tersambung ke backend AI apa pun. Isi VITE_GEMINI_API_KEY di file .env
+// (lihat .env.example) buat aktifin jawaban asli dari Gemini. Tanpa key, widget
+// tetap jalan pakai jawaban demo/offline supaya UI tetap bisa dicoba.
+function ZaeAIOrb({ state }) {
+  const pulse = state === "listening" ? 30 : state === "thinking" ? 24 : 22;
   return (
-    <section style={{ position:"relative",background:"#050505",color:"#fff",padding:"64px 56px",overflow:"hidden" }}>
-      <div style={{ position:"absolute",top:"-10%",left:"50%",transform:"translateX(-50%)",opacity:0.5 }}>
-        <ScrollSpin size={260} accent="#ffffff" dim={0.55} variant="grid" />
-      </div>
-      <div style={{ maxWidth:480,margin:"0 auto",textAlign:"center" }}>
-        <p style={{ fontSize:11,textTransform:"uppercase",letterSpacing:"0.3em",color:"#e8702a",fontWeight:600,marginBottom:24 }}>Access Now</p>
-        <div style={{ display:"flex",flexDirection:"column",gap:12 }}>
-          {[
-            { label:"Explore Zae AI", href:"https://zae-ai.vercel.app/", primary:true },
-            { label:"Zae Vision", href:"https://portofolio-iota-one-64.vercel.app/", primary:false },
-          ].map(({ label, href, primary }) => (
-            <a key={label} href={href} target="_blank" rel="noopener noreferrer"
-              style={{ display:"block",padding:"14px 20px",borderRadius:9999,fontSize:14,fontWeight:primary?600:500,textDecoration:"none",transition:"all 0.3s",
-                background:primary?"#e8702a":"transparent",color:"#fff",border:primary?"1px solid transparent":"1px solid rgba(255,255,255,0.20)" }}
-              onMouseEnter={e => { e.currentTarget.style.transform="scale(1.02)"; if(!primary) e.currentTarget.style.borderColor="rgba(255,255,255,0.45)"; }}
-              onMouseLeave={e => { e.currentTarget.style.transform="scale(1)"; if(!primary) e.currentTarget.style.borderColor="rgba(255,255,255,0.20)"; }}>
-              {label}
-            </a>
-          ))}
+    <div style={{ position:"relative",width:110,height:110,display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0 }}>
+      <div style={{ position:"absolute",inset:0,borderRadius:"50%",border:"1.5px solid rgba(232,112,42,0.55)",animation:`orbSpin ${state==="thinking"?1.2:6}s linear infinite` }} />
+      <div style={{ position:"absolute",inset:14,borderRadius:"50%",border:"1px solid rgba(232,112,42,0.30)",animation:"orbSpin 8s linear infinite reverse" }} />
+      <div style={{ width:pulse,height:pulse,borderRadius:"50%",background:"#e8702a",boxShadow:"0 0 24px 6px rgba(232,112,42,0.55)",transition:"all 0.3s" }} />
+    </div>
+  );
+}
+
+function ZaeAIWidget() {
+  const [messages, setMessages] = useState([
+    { role:"ai", text:"Halo, aku Zae AI 👋 Tanya-tanya soal proyek, tools, atau workflow di Zae Labs, boleh." },
+  ]);
+  const [input, setInput] = useState("");
+  const [thinking, setThinking] = useState(false);
+  const [listening, setListening] = useState(false);
+  const [muted, setMuted] = useState(true);
+  const [micSupported, setMicSupported] = useState(true);
+  const [isMobile, setIsMobile] = useState(false);
+  const recognitionRef = useRef(null);
+  const logRef = useRef(null);
+
+  useEffect(() => {
+    const checkMobile = () => setIsMobile(window.innerWidth <= 720);
+    checkMobile();
+    window.addEventListener("resize", checkMobile);
+    return () => window.removeEventListener("resize", checkMobile);
+  }, []);
+
+  useEffect(() => {
+    const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (!SR) { setMicSupported(false); return; }
+    const rec = new SR();
+    rec.lang = "id-ID";
+    rec.interimResults = false;
+    rec.maxAlternatives = 1;
+    rec.onresult = (e) => {
+      const transcript = e.results[0][0].transcript;
+      setListening(false);
+      sendMessage(transcript);
+    };
+    rec.onerror = () => setListening(false);
+    rec.onend = () => setListening(false);
+    recognitionRef.current = rec;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  useEffect(() => {
+    if (logRef.current) logRef.current.scrollTop = logRef.current.scrollHeight;
+  }, [messages, thinking]);
+
+  const speak = (text) => {
+    if (muted || !window.speechSynthesis) return;
+    window.speechSynthesis.cancel();
+    const utter = new SpeechSynthesisUtterance(text);
+    utter.lang = "id-ID";
+    utter.rate = 1.02;
+    window.speechSynthesis.speak(utter);
+  };
+
+  const getAIReply = async (text) => {
+    const apiKey = import.meta.env.VITE_GEMINI_API_KEY;
+    const lower = text.toLowerCase();
+    if (!apiKey) {
+      if (lower.includes("jam berapa") || lower.includes("waktu sekarang")) {
+        return `Sekarang jam ${new Date().toLocaleTimeString("id-ID",{ hour:"2-digit",minute:"2-digit" })}.`;
+      }
+      if (lower.includes("siapa") && lower.includes("zae")) {
+        return "Zae Labs itu brand-nya Irsya Zaelani — eksperimen AI workflow, prompt system, sama web development.";
+      }
+      return "Aku masih mode demo, belum tersambung ke Gemini API. Tambahin VITE_GEMINI_API_KEY di .env biar aku bisa jawab beneran.";
+    }
+    try {
+      const res = await fetch(
+        `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`,
+        {
+          method:"POST",
+          headers:{ "Content-Type":"application/json" },
+          body: JSON.stringify({
+            contents:[{ role:"user", parts:[{ text }] }],
+            systemInstruction:{ parts:[{ text:"Kamu adalah Zae AI, asisten ramah di website portfolio Zae Labs milik Irsya Zaelani. Jawab singkat, jelas, santai, pakai Bahasa Indonesia kecuali diminta bahasa lain." }] },
+          }),
+        }
+      );
+      const data = await res.json();
+      return data?.candidates?.[0]?.content?.parts?.[0]?.text?.trim() || "Maaf, aku belum bisa jawab itu sekarang.";
+    } catch {
+      return "Ada gangguan koneksi ke Zae AI. Coba lagi sebentar ya.";
+    }
+  };
+
+  const sendMessage = async (raw) => {
+    const text = (raw ?? input).trim();
+    if (!text || thinking) return;
+    setMessages((m) => [...m, { role:"user", text }]);
+    setInput("");
+    setThinking(true);
+    const reply = await getAIReply(text);
+    setThinking(false);
+    setMessages((m) => [...m, { role:"ai", text:reply }]);
+    speak(reply);
+  };
+
+  const toggleMic = () => {
+    if (!micSupported || !recognitionRef.current) return;
+    if (listening) {
+      recognitionRef.current.stop();
+      setListening(false);
+    } else {
+      try { recognitionRef.current.start(); setListening(true); } catch {}
+    }
+  };
+
+  const state = listening ? "listening" : thinking ? "thinking" : "idle";
+
+  return (
+    <div className="glass-panel" style={{
+      borderRadius:32,border:"1px solid rgba(255,255,255,0.18)",background:"rgba(255,255,255,0.06)",
+      backdropFilter:"blur(20px) saturate(180%)",WebkitBackdropFilter:"blur(20px) saturate(180%)",
+      boxShadow:"0 4px 24px rgba(0,0,0,0.25), inset 0 1px 0 rgba(255,255,255,0.12)",
+      display:"grid",gridTemplateColumns:isMobile?"1fr":"200px 1fr",overflow:"hidden",textAlign:"left",
+    }}>
+      {/* Avatar / orb panel */}
+      <div style={{
+        position:"relative",background:"rgba(0,0,0,0.35)",
+        borderRight:isMobile?"none":"1px solid rgba(255,255,255,0.10)",
+        borderBottom:isMobile?"1px solid rgba(255,255,255,0.10)":"none",
+        display:"flex",flexDirection:isMobile?"row":"column",alignItems:"center",justifyContent:"center",
+        gap:isMobile?16:14,padding:isMobile?"18px 20px":"28px 16px",
+      }}>
+        <div style={{ position:"absolute",inset:0,backgroundImage:"radial-gradient(rgba(255,255,255,0.08) 1px, transparent 1px)",backgroundSize:"18px 18px",opacity:0.5 }} />
+        <div style={{ position:"relative", transform: isMobile ? "scale(0.6)" : "scale(1)" }}>
+          <ZaeAIOrb state={state} />
         </div>
-        <a href="#" style={{ display:"inline-block",marginTop:28,fontSize:13,color:"rgba(255,255,255,0.40)",transition:"color 0.3s" }}
-          onMouseEnter={e => e.currentTarget.style.color="#fff"} onMouseLeave={e => e.currentTarget.style.color="rgba(255,255,255,0.40)"}>
-          Already have access? Go to Project Zae
-        </a>
+        <div style={{ position:"relative",textAlign:isMobile?"left":"center" }}>
+          <p style={{ fontSize:13,fontWeight:600,color:"#fff" }}>Zae AI</p>
+          <p style={{ fontSize:11,color:"rgba(255,255,255,0.45)",marginTop:2 }}>
+            {listening ? "Mendengarkan..." : thinking ? "Mikir..." : "Siap membantu"}
+          </p>
+        </div>
       </div>
-    </section>
+
+      {/* Chat panel */}
+      <div style={{ display:"flex",flexDirection:"column",minWidth:0 }}>
+        <div ref={logRef} style={{ flex:1,overflowY:"auto",padding:"20px 22px",display:"flex",flexDirection:"column",gap:12,maxHeight:260,minHeight:180 }}>
+          {messages.map((m, i) => (
+            <div key={i} style={{ alignSelf: m.role==="user" ? "flex-end" : "flex-start", maxWidth:"85%" }}>
+              <div style={{
+                padding:"10px 14px",borderRadius: m.role==="user" ? "16px 16px 4px 16px" : "16px 16px 16px 4px",
+                background: m.role==="user" ? "#e8702a" : "rgba(255,255,255,0.08)",
+                color: m.role==="user" ? "#fff" : "rgba(255,255,255,0.85)",
+                fontSize:13.5,lineHeight:1.5,border: m.role==="user" ? "none" : "1px solid rgba(255,255,255,0.10)",
+              }}>{m.text}</div>
+            </div>
+          ))}
+          {thinking && (
+            <div style={{ alignSelf:"flex-start",padding:"10px 14px",borderRadius:"16px 16px 16px 4px",background:"rgba(255,255,255,0.08)",border:"1px solid rgba(255,255,255,0.10)",fontSize:13,color:"rgba(255,255,255,0.5)" }}>
+              Zae AI sedang mengetik...
+            </div>
+          )}
+        </div>
+        <div style={{ borderTop:"1px solid rgba(255,255,255,0.10)",padding:"12px 14px",display:"flex",alignItems:"center",gap:8 }}>
+          <input
+            value={input}
+            onChange={(e) => setInput(e.target.value)}
+            onKeyDown={(e) => { if (e.key === "Enter") sendMessage(); }}
+            placeholder="Tanya Zae AI..."
+            style={{ flex:1,background:"rgba(255,255,255,0.06)",border:"1px solid rgba(255,255,255,0.14)",borderRadius:9999,padding:"10px 16px",color:"#fff",fontSize:13.5,outline:"none" }}
+          />
+          <button onClick={toggleMic} disabled={!micSupported}
+            title={micSupported ? (listening ? "Berhenti dengar" : "Ngomong ke Zae AI") : "Mic browser tidak didukung"}
+            style={{ width:36,height:36,borderRadius:"50%",display:"flex",alignItems:"center",justifyContent:"center",border:"1px solid rgba(255,255,255,0.16)",background: listening ? "#e8702a" : "rgba(255,255,255,0.06)",color:"#fff",cursor: micSupported ? "pointer" : "not-allowed",flexShrink:0,transition:"all 0.2s",opacity: micSupported ? 1 : 0.4 }}>
+            {micSupported ? <Mic size={15} /> : <MicOff size={15} />}
+          </button>
+          <button onClick={() => setMuted((v) => !v)} title={muted ? "Suara mati" : "Suara nyala"}
+            style={{ width:36,height:36,borderRadius:"50%",display:"flex",alignItems:"center",justifyContent:"center",border:"1px solid rgba(255,255,255,0.16)",background:"rgba(255,255,255,0.06)",color: muted ? "rgba(255,255,255,0.35)" : "#fff",cursor:"pointer",flexShrink:0 }}>
+            {muted ? <VolumeX size={15} /> : <Volume2 size={15} />}
+          </button>
+          <button onClick={() => sendMessage()} title="Kirim"
+            style={{ width:36,height:36,borderRadius:"50%",display:"flex",alignItems:"center",justifyContent:"center",border:"none",background:"#e8702a",color:"#fff",cursor:"pointer",flexShrink:0 }}>
+            <Send size={15} />
+          </button>
+        </div>
+      </div>
+    </div>
   );
 }
 
@@ -2325,12 +2487,15 @@ function CTASection() {
           </div>
           <p style={{ position:"relative",fontSize:11,textTransform:"uppercase",letterSpacing:"0.3em",color:"#e8702a",fontWeight:600,marginBottom:20 }}>Build with Zae Labs</p>
           <h2 style={{ position:"relative",fontSize:"clamp(32px,5vw,58px)",fontWeight:500,letterSpacing:"-0.06em",lineHeight:0.95,marginBottom:24 }}>
-            Get the prompts. Build the system. <span className="font-playfair">Launch</span> faster.
+            Meet <span className="font-playfair">Zae</span> AI.
           </h2>
           <p style={{ position:"relative",color:"rgba(255,255,255,0.65)",fontSize:17,lineHeight:1.65,maxWidth:520,margin:"0 auto 36px" }}>
-            Follow Zae Labs for practical AI tutorials, web development experiments, and prompt systems that help you turn ideas into real digital products.
+            Ngobrol langsung — ketik atau ngomong — sama asisten AI-nya Zae Labs. Tanya soal proyek, tools, atau workflow yang ada di web ini.
           </p>
-          <div style={{ position:"relative",display:"flex",flexWrap:"wrap",alignItems:"center",justifyContent:"center",gap:12 }}>
+          <div style={{ position:"relative",maxWidth:640,margin:"0 auto" }}>
+            <ZaeAIWidget />
+          </div>
+          <div style={{ position:"relative",display:"flex",flexWrap:"wrap",alignItems:"center",justifyContent:"center",gap:12,marginTop:32 }}>
             <a href="#prompts" style={{ display:"inline-block",background:"#e8702a",color:"#fff",fontSize:14,fontWeight:500,padding:"12px 28px",borderRadius:9999,transition:"all 0.2s" }}
               onMouseEnter={e => { e.currentTarget.style.background="#d2611f"; e.currentTarget.style.transform="scale(1.03)"; }}
               onMouseLeave={e => { e.currentTarget.style.background="#e8702a"; e.currentTarget.style.transform="scale(1)"; }}>
