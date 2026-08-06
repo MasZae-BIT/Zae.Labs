@@ -510,7 +510,9 @@ function HeroSection({ unlocked, setUnlocked }) {
   const mouseRef = useRef({ x: -999, y: -999 });
   const smoothRef = useRef({ x: -999, y: -999 });
   const rafRef = useRef(null);
+  const sectionRef = useRef(null);
   const [cursorPos, setCursorPos] = useState({ x: -999, y: -999 });
+  const [heroVisible, setHeroVisible] = useState(true);
 
   // Lock scroll on mount, unlock when button clicked
   useEffect(() => {
@@ -522,18 +524,36 @@ function HeroSection({ unlocked, setUnlocked }) {
     return () => { document.body.style.overflow = ""; };
   }, [unlocked]);
 
+  // Only run the (expensive) cursor-spotlight loop while the hero is actually on screen —
+  // avoids burning CPU forever once the user has scrolled past it.
   useEffect(() => {
+    const el = sectionRef.current;
+    if (!el || typeof IntersectionObserver === "undefined") return;
+    const obs = new IntersectionObserver(([entry]) => setHeroVisible(entry.isIntersecting), { threshold: 0 });
+    obs.observe(el);
+    return () => obs.disconnect();
+  }, []);
+
+  useEffect(() => {
+    if (!heroVisible) return;
     const onMove = e => { mouseRef.current.x = e.clientX; mouseRef.current.y = e.clientY; };
     window.addEventListener("mousemove", onMove);
     const loop = () => {
       smoothRef.current.x += (mouseRef.current.x - smoothRef.current.x) * 0.1;
       smoothRef.current.y += (mouseRef.current.y - smoothRef.current.y) * 0.1;
-      setCursorPos({ x: smoothRef.current.x, y: smoothRef.current.y });
+      // Skip the (expensive) canvas redraw/state update once the smoothing has settled —
+      // this is the common "mouse idle" case and was previously re-rendering forever.
+      setCursorPos(prev => {
+        const dx = Math.abs(prev.x - smoothRef.current.x);
+        const dy = Math.abs(prev.y - smoothRef.current.y);
+        if (dx < 0.4 && dy < 0.4) return prev;
+        return { x: smoothRef.current.x, y: smoothRef.current.y };
+      });
       rafRef.current = requestAnimationFrame(loop);
     };
     rafRef.current = requestAnimationFrame(loop);
     return () => { window.removeEventListener("mousemove", onMove); if (rafRef.current) cancelAnimationFrame(rafRef.current); };
-  }, []);
+  }, [heroVisible]);
 
   const handleUnlock = () => {
     setUnlocked(true);
@@ -543,7 +563,7 @@ function HeroSection({ unlocked, setUnlocked }) {
   };
 
   return (
-    <section id="hero" style={{ position:"relative",width:"100%",overflow:"hidden",height:"100dvh",background:"#000" }}>
+    <section id="hero" ref={sectionRef} style={{ position:"relative",width:"100%",overflow:"hidden",height:"100dvh",background:"#000" }}>
       <div className="hero-zoom" style={{ position:"absolute",inset:0,backgroundImage:`url('${BG_IMAGE_1}')`,backgroundSize:"cover",backgroundPosition:"center",zIndex:10 }} />
       <RevealLayer image={BG_IMAGE_2} cursorX={cursorPos.x} cursorY={cursorPos.y} />
 
