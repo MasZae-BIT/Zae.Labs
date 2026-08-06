@@ -2490,8 +2490,8 @@ function ZaeAIWidget() {
         </div>
       </div>
 
-      <div style={{ display:"flex",flexDirection:"column",minHeight:300,maxHeight:360 }}>
-        <div ref={logRef} className="zae-ai-scroll" style={{ flex:1,overflowY:"auto",padding:"18px 18px 8px",display:"flex",flexDirection:"column",gap:9 }}>
+      <div style={{ display:"flex",flexDirection:"column",height:360,maxHeight:360,minHeight:0,overflow:"hidden" }}>
+        <div ref={logRef} className="zae-ai-scroll" style={{ flex:"1 1 0%",minHeight:0,overflowY:"auto",padding:"18px 18px 8px",display:"flex",flexDirection:"column",gap:9 }}>
           {messages.map((msg, i) => (
             <div key={i} style={{
               alignSelf: msg.role==="user" ? "flex-end" : "flex-start",
