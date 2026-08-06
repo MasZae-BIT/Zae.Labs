@@ -118,18 +118,6 @@ const GLOBAL_CSS = `
   @keyframes zaeSpinRev { from { transform: rotate(360deg); } to { transform: rotate(0deg); } }
   @keyframes zaePulse { 0%,100% { opacity: 0.55; } 50% { opacity: 1; } }
 
-  @media (max-width: 640px) {
-    .section-pad { padding-left: 20px !important; padding-right: 20px !important; padding-top: 92px !important; padding-bottom: 64px !important; }
-    .about-stats-grid { gap: 8px !important; }
-    .about-stats-grid > div { padding: 12px !important; border-radius: 16px !important; }
-    .about-stats-grid p:first-child { font-size: 17px !important; }
-    .about-stats-grid p:last-child { font-size: 10px !important; }
-    .cta-inner-box { padding: 28px 18px !important; border-radius: 24px !important; }
-  }
-  @media (max-width: 400px) {
-    .section-pad { padding-left: 16px !important; padding-right: 16px !important; }
-  }
-
   .zae-ai-shell { display: grid; grid-template-columns: 220px 1fr; }
   .zae-ai-avatar-panel { display: flex; flex-direction: column; }
   .zae-ai-scroll::-webkit-scrollbar { width: 4px; }
@@ -145,10 +133,6 @@ const GLOBAL_CSS = `
       border-bottom: 1px solid rgba(255,255,255,0.08);
     }
     .zae-ai-avatar-panel .zae-ai-orb { width: 56px !important; height: 56px !important; }
-  }
-  @media (max-width: 380px) {
-    .zae-ai-toolbar { gap: 4px !important; padding-left: 8px !important; padding-right: 8px !important; }
-    .zae-ai-toolbar button { width: 28px !important; height: 28px !important; }
   }
 
   @keyframes photoReveal {
@@ -420,7 +404,6 @@ function Nav({ unlocked }) {
 
   return (
     <nav style={{ position:"fixed",top:0,left:0,right:0,zIndex:100,display:"flex",alignItems:"center",justifyContent:"space-between",padding:"16px 20px" }}>
-      <div style={{ position:"absolute",top:0,left:0,right:0,height:110,background:"linear-gradient(180deg, rgba(0,0,0,0.82) 0%, rgba(0,0,0,0.45) 55%, transparent 100%)",backdropFilter:"blur(6px)",WebkitBackdropFilter:"blur(6px)",zIndex:-1,pointerEvents:"none" }} />
       {/* Logo */}
       <a href="#hero" style={{ display:"flex",alignItems:"center",gap:10 }} onClick={() => setActive("Zae Labs")}>
         <LogoIcon size={24} />
@@ -510,9 +493,7 @@ function HeroSection({ unlocked, setUnlocked }) {
   const mouseRef = useRef({ x: -999, y: -999 });
   const smoothRef = useRef({ x: -999, y: -999 });
   const rafRef = useRef(null);
-  const sectionRef = useRef(null);
   const [cursorPos, setCursorPos] = useState({ x: -999, y: -999 });
-  const [heroVisible, setHeroVisible] = useState(true);
 
   // Lock scroll on mount, unlock when button clicked
   useEffect(() => {
@@ -524,36 +505,18 @@ function HeroSection({ unlocked, setUnlocked }) {
     return () => { document.body.style.overflow = ""; };
   }, [unlocked]);
 
-  // Only run the (expensive) cursor-spotlight loop while the hero is actually on screen —
-  // avoids burning CPU forever once the user has scrolled past it.
   useEffect(() => {
-    const el = sectionRef.current;
-    if (!el || typeof IntersectionObserver === "undefined") return;
-    const obs = new IntersectionObserver(([entry]) => setHeroVisible(entry.isIntersecting), { threshold: 0 });
-    obs.observe(el);
-    return () => obs.disconnect();
-  }, []);
-
-  useEffect(() => {
-    if (!heroVisible) return;
     const onMove = e => { mouseRef.current.x = e.clientX; mouseRef.current.y = e.clientY; };
     window.addEventListener("mousemove", onMove);
     const loop = () => {
       smoothRef.current.x += (mouseRef.current.x - smoothRef.current.x) * 0.1;
       smoothRef.current.y += (mouseRef.current.y - smoothRef.current.y) * 0.1;
-      // Skip the (expensive) canvas redraw/state update once the smoothing has settled —
-      // this is the common "mouse idle" case and was previously re-rendering forever.
-      setCursorPos(prev => {
-        const dx = Math.abs(prev.x - smoothRef.current.x);
-        const dy = Math.abs(prev.y - smoothRef.current.y);
-        if (dx < 0.4 && dy < 0.4) return prev;
-        return { x: smoothRef.current.x, y: smoothRef.current.y };
-      });
+      setCursorPos({ x: smoothRef.current.x, y: smoothRef.current.y });
       rafRef.current = requestAnimationFrame(loop);
     };
     rafRef.current = requestAnimationFrame(loop);
     return () => { window.removeEventListener("mousemove", onMove); if (rafRef.current) cancelAnimationFrame(rafRef.current); };
-  }, [heroVisible]);
+  }, []);
 
   const handleUnlock = () => {
     setUnlocked(true);
@@ -563,7 +526,7 @@ function HeroSection({ unlocked, setUnlocked }) {
   };
 
   return (
-    <section id="hero" ref={sectionRef} style={{ position:"relative",width:"100%",overflow:"hidden",height:"100dvh",background:"#000" }}>
+    <section id="hero" style={{ position:"relative",width:"100%",overflow:"hidden",height:"100dvh",background:"#000" }}>
       <div className="hero-zoom" style={{ position:"absolute",inset:0,backgroundImage:`url('${BG_IMAGE_1}')`,backgroundSize:"cover",backgroundPosition:"center",zIndex:10 }} />
       <RevealLayer image={BG_IMAGE_2} cursorX={cursorPos.x} cursorY={cursorPos.y} />
 
@@ -672,7 +635,7 @@ function PortfolioHero() {
   }, []);
 
   return (
-    <section id="portfolio" className="section-pad" style={{ position:"relative",background:"#000",color:"#fff",padding:"120px 56px 80px",minHeight:"100vh",display:"flex",alignItems:"center",overflow:"hidden" }}>
+    <section id="portfolio" style={{ position:"relative",background:"#000",color:"#fff",padding:"120px 56px 80px",minHeight:"100vh",display:"flex",alignItems:"center",overflow:"hidden" }}>
       <div className="portfolio-deco-orbit" style={{ position:"absolute",top:"10%",left:"2%",opacity:0.85 }}>
         <ScrollSpin size={180} reverse variant="orbit" />
       </div>
@@ -724,7 +687,7 @@ function PortfolioHero() {
 // ─── About / Zae Labs brand ──────────────────────────────────────────────────
 function AboutSection() {
   return (
-    <section id="about" className="section-pad" style={{ position:"relative",background:"#050505",color:"#fff",padding:"96px 56px",overflow:"hidden" }}>
+    <section id="about" style={{ position:"relative",background:"#050505",color:"#fff",padding:"96px 56px",overflow:"hidden" }}>
       <div style={{ position:"absolute",top:0,right:0,width:520,height:520,background:"radial-gradient(circle closest-side at center, rgba(232,112,42,0.48) 0%, rgba(232,112,42,0.22) 35%, rgba(232,112,42,0.06) 65%, rgba(232,112,42,0) 100%)",pointerEvents:"none" }} />
       <div style={{ position:"absolute",top:"8%",right:"4%",opacity:0.9 }}>
         <ScrollSpin size={220} variant="diamond" />
@@ -740,7 +703,7 @@ function AboutSection() {
           <p style={{ color:"rgba(255,255,255,0.70)",fontSize:17,lineHeight:1.7,marginBottom:48,maxWidth:520 }}>
             Zae Labs creates practical AI workflows, prompt systems, web development experiments, and AI agent tutorials for creators, students, and builders who want to turn ideas into real digital products faster.
           </p>
-          <div className="about-stats-grid" style={{ display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:12 }}>
+          <div style={{ display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:12 }}>
             {[{ num:"100+",label:"AI experiments" },{ num:"50+",label:"Prompt systems" },{ num:"10+",label:"Web builds" }].map(({ num, label }) => (
               <div key={label} className="glass-panel" style={{ borderRadius:24,border:"1px solid rgba(255,255,255,0.18)",background:"rgba(255,255,255,0.07)",padding:20,backdropFilter:"blur(20px) saturate(180%)",WebkitBackdropFilter:"blur(20px) saturate(180%)",boxShadow:"0 4px 24px rgba(0,0,0,0.20), inset 0 1px 0 rgba(255,255,255,0.12)" }}>
                 <p style={{ fontSize:"clamp(22px,3vw,28px)",fontWeight:600 }}>{num}</p>
@@ -814,7 +777,7 @@ function ExperienceSection() {
   });
 
   return (
-    <section id="experience" className="section-pad" style={{ position:"relative",background:"#000",color:"#fff",padding:"96px 56px",overflow:"hidden" }}>
+    <section id="experience" style={{ position:"relative",background:"#000",color:"#fff",padding:"96px 56px",overflow:"hidden" }}>
       <div style={{ position:"absolute",bottom:0,left:0,width:520,height:520,background:"radial-gradient(circle closest-side at center, rgba(232,112,42,0.42) 0%, rgba(232,112,42,0.18) 35%, rgba(232,112,42,0.05) 65%, rgba(232,112,42,0) 100%)",pointerEvents:"none" }} />
       <div style={{ position:"absolute",top:"6%",right:"-5%",opacity:0.75 }}>
         <ScrollSpin size={230} reverse variant="arc" />
@@ -895,7 +858,7 @@ function CertCard({ icon, title, desc, links }) {
 
 function CertificationsSection() {
   return (
-    <section className="section-pad" style={{ position:"relative",background:"#050505",color:"#fff",padding:"96px 56px",overflow:"hidden" }}>
+    <section style={{ position:"relative",background:"#050505",color:"#fff",padding:"96px 56px",overflow:"hidden" }}>
       <div style={{ position:"absolute",top:"20%",right:"-6%",opacity:0.8 }}>
         <ScrollSpin size={200} variant="grid" />
       </div>
@@ -1065,7 +1028,7 @@ function ToolsSection() {
     : TOOLS.filter(t => t.keyword.toLowerCase().includes(query.toLowerCase()) || t.name.toLowerCase().includes(query.toLowerCase()));
 
   return (
-    <section id="tools" className="section-pad" style={{ position:"relative",background:"#000",color:"#fff",padding:"96px 56px",overflow:"hidden" }}>
+    <section id="tools" style={{ position:"relative",background:"#000",color:"#fff",padding:"96px 56px",overflow:"hidden" }}>
       <div style={{ position:"absolute",top:"4%",left:"-4%",opacity:0.6 }}>
         <ScrollSpin size={200} accent="#ffffff" dim={0.7} reverse variant="triangle" />
       </div>
@@ -1739,7 +1702,7 @@ function WokwiCard({ Icon, title, desc, pill, image, code }) {
 
 function PromptsSection() {
   return (
-    <section id="prompts" className="section-pad" style={{ position:"relative",background:"#050505",color:"#fff",padding:"96px 56px",overflow:"hidden" }}>
+    <section id="prompts" style={{ position:"relative",background:"#050505",color:"#fff",padding:"96px 56px",overflow:"hidden" }}>
       <div style={{ position:"absolute",bottom:"-8%",right:"-4%",opacity:0.7 }}>
         <ScrollSpin size={240} reverse variant="orbit" />
       </div>
@@ -2279,7 +2242,7 @@ function PromptLibraryCard({ Icon, title, desc, pill, prompt }) {
 
 function PromptLibrarySection() {
   return (
-    <section id="prompt-library" className="section-pad" style={{ position:"relative",background:"#000",color:"#fff",padding:"96px 56px",overflow:"hidden" }}>
+    <section id="prompt-library" style={{ position:"relative",background:"#000",color:"#fff",padding:"96px 56px",overflow:"hidden" }}>
       <div style={{ position:"absolute",top:"8%",left:"-5%",opacity:0.7 }}>
         <ScrollSpin size={220} variant="grid" />
       </div>
@@ -2306,7 +2269,7 @@ const WORKFLOW_STEPS = [
 
 function WorkflowSection() {
   return (
-    <section id="workflow" className="section-pad" style={{ position:"relative",background:"#000",color:"#fff",padding:"96px 56px",overflow:"hidden" }}>
+    <section id="workflow" style={{ position:"relative",background:"#000",color:"#fff",padding:"96px 56px",overflow:"hidden" }}>
       <div style={{ position:"absolute",bottom:"-6%",left:"-4%",opacity:0.85 }}>
         <ScrollSpin size={260} reverse variant="diamond" />
       </div>
@@ -2507,7 +2470,7 @@ function ZaeAIWidget() {
           ))}
         </div>
 
-        <div className="zae-ai-toolbar" style={{ borderTop:"1px solid rgba(255,255,255,0.08)",padding:"10px 12px",display:"flex",alignItems:"center",gap:7 }}>
+        <div style={{ borderTop:"1px solid rgba(255,255,255,0.08)",padding:"10px 12px",display:"flex",alignItems:"center",gap:7 }}>
           <button onClick={toggleMic} disabled={!micSupported}
             title={micSupported ? "Bicara" : "Browser ini belum dukung input suara"}
             style={{
@@ -2526,7 +2489,7 @@ function ZaeAIWidget() {
             placeholder="Ketik pesan…"
             style={{
               flex:1,background:"rgba(255,255,255,0.05)",border:"1px solid rgba(255,255,255,0.10)",
-              borderRadius:9999,padding:"9px 14px",fontSize:16,color:"#fff",outline:"none",minWidth:0,
+              borderRadius:9999,padding:"9px 14px",fontSize:13,color:"#fff",outline:"none",minWidth:0,
             }} />
           <button onClick={()=>handleSend(input)} style={{
             width:32,height:32,borderRadius:"50%",border:"none",cursor:"pointer",flexShrink:0,
@@ -2555,9 +2518,9 @@ function ZaeAIWidget() {
 // ─── Final CTA ────────────────────────────────────────────────────────────────
 function CTASection() {
   return (
-    <section id="contact" className="section-pad" style={{ background:"#000",color:"#fff",padding:"80px 56px" }}>
+    <section id="contact" style={{ background:"#000",color:"#fff",padding:"80px 56px" }}>
       <div style={{ maxWidth:960,margin:"0 auto" }}>
-        <div className="cta-inner-box" style={{ position:"relative",overflow:"hidden",borderRadius:40,border:"1px solid rgba(255,255,255,0.10)",background:"rgba(255,255,255,0.05)",padding:"56px",textAlign:"center",backdropFilter:"blur(12px)" }}>
+        <div style={{ position:"relative",overflow:"hidden",borderRadius:40,border:"1px solid rgba(255,255,255,0.10)",background:"rgba(255,255,255,0.05)",padding:"56px",textAlign:"center",backdropFilter:"blur(12px)" }}>
           <div style={{ position:"absolute",top:"50%",left:"50%",transform:"translate(-50%,-50%)",width:600,height:300,background:"radial-gradient(ellipse,rgba(232,112,42,0.18) 0%,transparent 70%)",pointerEvents:"none" }} />
           <div style={{ position:"absolute",top:"50%",left:"50%",transform:"translate(-50%,-50%)",opacity:0.35 }}>
             <ScrollSpin size={320} accent="#ffffff" dim={0.5} variant="arc" />
