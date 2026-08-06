@@ -2408,21 +2408,48 @@ function ZaeAIWidget() {
   const [state, setState] = useState("idle"); // idle | listening | thinking | speaking
   const [voiceOn, setVoiceOn] = useState(true);
   const [micSupported, setMicSupported] = useState(true);
+  const [micError, setMicError] = useState("");
   const recognitionRef = useRef(null);
   const logRef = useRef(null);
+  const voicesRef = useRef([]);
+  const handleSendRef = useRef(() => {});
+
+  // Voice list loads async in most browsers — keep it fresh so we can
+  // actually pick a good voice once it's available.
+  useEffect(() => {
+    if (typeof window === "undefined" || !window.speechSynthesis) return;
+    const loadVoices = () => { voicesRef.current = window.speechSynthesis.getVoices(); };
+    loadVoices();
+    window.speechSynthesis.onvoiceschanged = loadVoices;
+    return () => { window.speechSynthesis.onvoiceschanged = null; };
+  }, []);
 
   useEffect(() => {
     const SR = typeof window !== "undefined" && (window.SpeechRecognition || window.webkitSpeechRecognition);
     if (!SR) { setMicSupported(false); return; }
     const rec = new SR();
     rec.lang = ZAE_LANG;
+    rec.continuous = false;
     rec.interimResults = false;
     rec.maxAlternatives = 1;
     rec.onresult = (e) => {
       const text = e.results?.[0]?.[0]?.transcript || "";
-      if (text) handleSend(text);
+      if (text.trim()) handleSendRef.current(text);
     };
-    rec.onerror = () => setState("idle");
+    rec.onstart = () => setMicError("");
+    rec.onerror = (e) => {
+      setState("idle");
+      const code = e?.error;
+      setMicError(
+        code === "not-allowed" || code === "service-not-allowed"
+          ? "Akses mic diblokir. Izinkan mic di pengaturan browser dulu ya."
+          : code === "no-speech"
+          ? "Nggak kedengeran suara. Coba lagi, ngomongnya lebih deket ke mic."
+          : code === "audio-capture"
+          ? "Mic nggak ketemu di device ini."
+          : "Ada gangguan pas dengerin suara, coba tekan mic lagi."
+      );
+    };
     rec.onend = () => setState((s) => (s === "listening" ? "idle" : s));
     recognitionRef.current = rec;
     return () => { try { rec.stop(); } catch (_) {} };
@@ -2433,13 +2460,44 @@ function ZaeAIWidget() {
     if (logRef.current) logRef.current.scrollTop = logRef.current.scrollHeight;
   }, [messages]);
 
+  // Picks the most natural-sounding FEMALE Indonesian voice available in
+  // the user's browser. Falls back gracefully if nothing matches.
+  const pickFemaleIndonesianVoice = () => {
+    const voices = voicesRef.current?.length
+      ? voicesRef.current
+      : (typeof window !== "undefined" && window.speechSynthesis?.getVoices()) || [];
+    if (!voices.length) return null;
+
+    const idVoices = voices.filter(v => v.lang?.toLowerCase().startsWith("id"));
+    const pool = idVoices.length ? idVoices : voices;
+
+    const femaleHints = ["female", "wanita", "damayanti", "gadis", "putri", "siti"];
+    const maleHints = ["male", "pria", "andika"];
+
+    const score = (v) => {
+      const n = v.name?.toLowerCase() || "";
+      let s = 0;
+      if (femaleHints.some(h => n.includes(h))) s += 5;
+      if (maleHints.some(h => n.includes(h))) s -= 5;
+      if (n.includes("google")) s += 3;      // Google's id-ID voice: natural + female by default
+      if (n.includes("neural") || n.includes("online")) s += 2; // cloud/neural voices sound better than compact/local ones
+      if (v.localService) s += 1;
+      return s;
+    };
+
+    return [...pool].sort((a, b) => score(b) - score(a))[0] || null;
+  };
+
   const speak = (text) => {
     if (!voiceOn || typeof window === "undefined" || !window.speechSynthesis) { setState("idle"); return; }
     window.speechSynthesis.cancel();
     const utter = new SpeechSynthesisUtterance(text);
     utter.lang = ZAE_LANG;
-    const idVoice = window.speechSynthesis.getVoices().find(v => v.lang?.toLowerCase().startsWith("id"));
-    if (idVoice) utter.voice = idVoice;
+    const voice = pickFemaleIndonesianVoice();
+    if (voice) utter.voice = voice;
+    utter.pitch = 1.05;   // slightly higher, natural female range
+    utter.rate = 0.97;    // a touch slower than default = less robotic
+    utter.volume = 1;
     utter.onstart = () => setState("speaking");
     utter.onend = () => setState("idle");
     utter.onerror = () => setState("idle");
@@ -2456,17 +2514,38 @@ function ZaeAIWidget() {
     setMessages((m) => [...m, { role:"assistant", text:reply }]);
     speak(reply);
   };
+  // keep the ref pointed at the latest handleSend so the mic's onresult
+  // handler (bound once on mount) never calls a stale closure.
+  useEffect(() => { handleSendRef.current = handleSend; });
 
-  const toggleMic = () => {
+  const toggleMic = async () => {
     if (!micSupported) return;
     if (state === "listening") {
       try { recognitionRef.current?.stop(); } catch (_) {}
       setState("idle");
       return;
     }
+    setMicError("");
     window.speechSynthesis?.cancel();
+    // Explicitly ask for mic permission first — on some browsers (mobile
+    // Chrome especially) SpeechRecognition silently fails to capture audio
+    // if this isn't granted up front.
+    try {
+      if (navigator.mediaDevices?.getUserMedia) {
+        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        stream.getTracks().forEach(t => t.stop());
+      }
+    } catch (_) {
+      setMicError("Akses mic diblokir. Izinkan mic di pengaturan browser dulu ya.");
+      return;
+    }
     setState("listening");
-    try { recognitionRef.current?.start(); } catch (_) {}
+    try {
+      recognitionRef.current?.start();
+    } catch (_) {
+      setState("idle");
+      setMicError("Mic lagi sibuk, coba tekan lagi.");
+    }
   };
 
   const clearChat = () => setMessages([{ role:"system", text:"Riwayat dibersihkan." }]);
