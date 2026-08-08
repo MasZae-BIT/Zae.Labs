@@ -1115,9 +1115,16 @@ function ToolsCarousel({ tools }) {
     window.open(tools[idx].href, "_blank", "noopener,noreferrer");
   };
 
+  const handlePointerDown = () => {
+    // Reset di SETIAP interaksi (tap maupun drag), bukan cuma pas drag beneran
+    // mulai. Kalau cuma di-reset di onDragStart, tap tanpa gerakan gak pernah
+    // reset ref-nya -> nilai lama dari drag sebelumnya "nyangkut" -> tap
+    // berikutnya keanggap masih drag -> link gak kebuka.
+    dragDistanceRef.current = 0;
+  };
+
   const handleDragStart = () => {
     startProgress.current = scrollProgress.get();
-    dragDistanceRef.current = 0;
   };
 
   const handleDrag = (_, info) => {
@@ -1144,11 +1151,12 @@ function ToolsCarousel({ tools }) {
           drag="x"
           dragConstraints={{ left:0, right:0 }}
           dragElastic={0.08}
+          onPointerDown={handlePointerDown}
           onDragStart={handleDragStart}
           onDrag={handleDrag}
           onDragEnd={handleDragEnd}
           onClick={openActive}
-          style={{ position:"absolute", inset:0, zIndex:50, cursor:"grab" }}
+          style={{ position:"absolute", inset:0, zIndex:50, cursor:"grab", touchAction:"pan-y" }}
           whileTap={{ cursor:"grabbing" }}
         />
         {tools.map((tool, i) => (
