@@ -2473,42 +2473,27 @@ function WorkflowSection() {
 }
 
 // ─── Zae AI Widget (text + voice, pakai Web Speech API bawaan browser) ────────
-// Status: UI only — belum konek ke otak AI. Begitu API key Gemini siap,
-// tinggal isi fungsi getZaeAIReply() di bawah ini (contoh pemanggilan ada
-// di komentar dalam fungsinya). Voice input (STT) & voice output (TTS) sudah
-// jalan penuh di sisi browser, tidak butuh API key.
+// Voice input (STT) & voice output (TTS) jalan penuh di sisi browser (gratis,
+// tanpa API key). Otak jawabannya nyambung ke Gemini lewat serverless function
+// /api/zae-chat (lihat file api/zae-chat.js) — API key Gemini disimpan aman
+// di server (env var GEMINI_API_KEY di Vercel), TIDAK pernah dikirim ke browser.
 const ZAE_LANG = "id-ID";
+const ZAE_CHAT_ENDPOINT = "/api/zae-chat";
 
-async function getZaeAIReply(message) {
-  const m = message.toLowerCase();
-
-  if (m.includes("jam berapa") || m.includes("waktu sekarang")) {
-    const now = new Date().toLocaleTimeString("id-ID", { hour: "2-digit", minute: "2-digit" });
-    return `Sekarang jam ${now}.`;
+async function getZaeAIReply(message, history = []) {
+  try {
+    const res = await fetch(ZAE_CHAT_ENDPOINT, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ message, history }),
+    });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const data = await res.json();
+    return data.reply || "Maaf, aku belum bisa jawab itu.";
+  } catch (err) {
+    console.error("getZaeAIReply error:", err);
+    return "Aku lagi nggak bisa nyambung ke otak AI-ku nih, cek koneksi atau coba lagi sebentar ya.";
   }
-  if (m.includes("siapa kamu") || m.includes("kamu siapa")) {
-    return "Aku Zae AI, asisten dari Zae Labs. Otak AI-nya belum dipasang, jadi jawabanku masih terbatas dulu.";
-  }
-  if (m.includes("halo") || m.includes("hai") || m.includes("hei")) {
-    return "Halo! Ada yang bisa aku bantu?";
-  }
-  if (m.includes("terima kasih") || m.includes("makasih")) {
-    return "Sama-sama! Panggil aku lagi kalau perlu.";
-  }
-  return "Otak AI-ku belum tersambung ke Gemini, jadi jawabanku masih terbatas. Setelah API key dipasang, aku bisa jawab lebih pintar.";
-
-  // TODO: ganti bagian di atas dengan pemanggilan Gemini API, contoh:
-  //
-  // const res = await fetch(
-  //   `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_API_KEY}`,
-  //   {
-  //     method: "POST",
-  //     headers: { "Content-Type": "application/json" },
-  //     body: JSON.stringify({ contents: [{ parts: [{ text: message }] }] }),
-  //   }
-  // );
-  // const data = await res.json();
-  // return data.candidates?.[0]?.content?.parts?.[0]?.text ?? "Maaf, aku belum bisa jawab itu.";
 }
 
 function ZaeAIAvatar({ state }) {
@@ -2582,10 +2567,11 @@ function ZaeAIWidget() {
   const handleSend = async (raw) => {
     const clean = (raw ?? "").trim();
     if (!clean) return;
+    const historyForContext = messages.filter((m) => m.role === "user" || m.role === "assistant");
     setMessages((m) => [...m, { role:"user", text:clean }]);
     setInput("");
     setState("thinking");
-    const reply = await getZaeAIReply(clean);
+    const reply = await getZaeAIReply(clean, historyForContext);
     setMessages((m) => [...m, { role:"assistant", text:reply }]);
     speak(reply);
   };
