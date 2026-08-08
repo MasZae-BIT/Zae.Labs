@@ -118,21 +118,33 @@ const GLOBAL_CSS = `
   @keyframes zaeSpinRev { from { transform: rotate(360deg); } to { transform: rotate(0deg); } }
   @keyframes zaePulse { 0%,100% { opacity: 0.55; } 50% { opacity: 1; } }
 
-  .zae-ai-shell { display: grid; grid-template-columns: 220px 1fr; }
-  .zae-ai-avatar-panel { display: flex; flex-direction: column; }
+  .zae-ai-shell { display: grid; grid-template-columns: 220px 1fr; width: 100%; }
+  /* Fix: grid items default to min-width:auto, which lets long chat content
+     force the track wider than its container and get clipped on mobile. */
+  .zae-ai-shell > * { min-width: 0; }
+  .zae-ai-avatar-panel { display: flex; flex-direction: column; min-width: 0; }
+  .zae-ai-body { min-width: 0; }
+  .zae-ai-scroll { min-width: 0; }
   .zae-ai-scroll::-webkit-scrollbar { width: 4px; }
   .zae-ai-scroll::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.15); border-radius: 10px; }
+  .zae-ai-input-row { min-width: 0; }
+  .zae-ai-msg { min-width: 0; overflow-wrap: break-word; word-break: break-word; }
 
   @media (max-width: 640px) {
-    .zae-ai-shell { grid-template-columns: 1fr !important; }
+    .zae-ai-shell { grid-template-columns: 1fr !important; width: 100% !important; max-width: 100% !important; }
     .zae-ai-avatar-panel {
       flex-direction: row !important;
-      padding: 14px 18px !important;
-      gap: 12px !important;
+      padding: 12px 14px !important;
+      gap: 10px !important;
       border-right: none !important;
       border-bottom: 1px solid rgba(255,255,255,0.08);
     }
-    .zae-ai-avatar-panel .zae-ai-orb { width: 56px !important; height: 56px !important; }
+    .zae-ai-avatar-panel .zae-ai-orb { width: 44px !important; height: 44px !important; }
+    .zae-ai-scroll { padding: 12px 12px 6px !important; max-height: 260px !important; }
+    .zae-ai-msg { font-size: 12.5px !important; max-width: 92% !important; }
+    .zae-ai-input-row { padding: 8px 8px !important; gap: 5px !important; flex-wrap: nowrap !important; }
+    .zae-ai-input-row input { font-size: 12.5px !important; padding: 8px 10px !important; }
+    .zae-ai-input-row button { width: 28px !important; height: 28px !important; flex-shrink: 0 !important; }
   }
 
   @keyframes photoReveal {
@@ -2598,7 +2610,7 @@ function ZaeAIWidget() {
     <div className="zae-ai-shell glass-panel" style={{
       borderRadius:24, border:"1px solid rgba(255,255,255,0.12)",
       background:"rgba(255,255,255,0.045)", overflow:"hidden", textAlign:"left",
-      maxWidth:600, margin:"0 auto",
+      maxWidth:600, width:"100%", margin:"0 auto", boxSizing:"border-box",
     }}>
       <div className="zae-ai-avatar-panel" style={{
         alignItems:"center", justifyContent:"center", gap:10, padding:"26px 14px",
@@ -2611,10 +2623,10 @@ function ZaeAIWidget() {
         </div>
       </div>
 
-      <div style={{ display:"flex",flexDirection:"column",minHeight:300,maxHeight:360 }}>
-        <div ref={logRef} className="zae-ai-scroll" style={{ flex:1,overflowY:"auto",padding:"18px 18px 8px",display:"flex",flexDirection:"column",gap:9 }}>
+      <div className="zae-ai-body" style={{ display:"flex",flexDirection:"column",minHeight:300,maxHeight:360,minWidth:0 }}>
+        <div ref={logRef} className="zae-ai-scroll" style={{ flex:1,overflowY:"auto",overflowX:"hidden",padding:"18px 18px 8px",display:"flex",flexDirection:"column",gap:9,minWidth:0 }}>
           {messages.map((msg, i) => (
-            <div key={i} style={{
+            <div key={i} className="zae-ai-msg" style={{
               alignSelf: msg.role==="user" ? "flex-end" : "flex-start",
               maxWidth:"85%", fontSize:13.5, lineHeight:1.5, padding: msg.role==="system" ? "0" : "9px 13px",
               borderRadius:14,
@@ -2628,7 +2640,7 @@ function ZaeAIWidget() {
           ))}
         </div>
 
-        <div style={{ borderTop:"1px solid rgba(255,255,255,0.08)",padding:"10px 12px",display:"flex",alignItems:"center",gap:7 }}>
+        <div className="zae-ai-input-row" style={{ borderTop:"1px solid rgba(255,255,255,0.08)",padding:"10px 12px",display:"flex",alignItems:"center",gap:7,minWidth:0 }}>
           <button onClick={toggleMic} disabled={!micSupported}
             title={micSupported ? "Bicara" : "Browser ini belum dukung input suara"}
             style={{
@@ -2676,9 +2688,9 @@ function ZaeAIWidget() {
 // ─── Final CTA ────────────────────────────────────────────────────────────────
 function CTASection() {
   return (
-    <section id="contact" style={{ background:"#000",color:"#fff",padding:"80px 56px" }}>
+    <section id="contact" style={{ background:"#000",color:"#fff",padding:"80px clamp(16px,6vw,56px)",boxSizing:"border-box" }}>
       <div style={{ maxWidth:960,margin:"0 auto" }}>
-        <div style={{ position:"relative",overflow:"hidden",borderRadius:40,border:"1px solid rgba(255,255,255,0.10)",background:"rgba(255,255,255,0.05)",padding:"56px",textAlign:"center",backdropFilter:"blur(12px)" }}>
+        <div style={{ position:"relative",overflow:"hidden",borderRadius:40,border:"1px solid rgba(255,255,255,0.10)",background:"rgba(255,255,255,0.05)",padding:"clamp(28px,7vw,56px) clamp(16px,5vw,56px)",boxSizing:"border-box",textAlign:"center",backdropFilter:"blur(12px)" }}>
           <div style={{ position:"absolute",top:"50%",left:"50%",transform:"translate(-50%,-50%)",width:600,height:300,background:"radial-gradient(ellipse,rgba(232,112,42,0.18) 0%,transparent 70%)",pointerEvents:"none" }} />
           <div style={{ position:"absolute",top:"50%",left:"50%",transform:"translate(-50%,-50%)",opacity:0.35 }}>
             <ScrollSpin size={320} accent="#ffffff" dim={0.5} variant="arc" />
