@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { motion, useScroll, useTransform, useSpring } from "framer-motion";
+import { motion, useScroll, useTransform, useSpring, useMotionValue, animate } from "framer-motion";
 import { Code2, Bot, Video, Zap, Menu, ArrowRight, X, Search, ChevronDown, ChevronUp, ExternalLink, Award, BookOpen, Wrench, GraduationCap, Copy, Check, Cpu, Mic, MicOff, Send, Trash2, Volume2, VolumeX, Sparkles } from "lucide-react";
 import { FaDatabase, FaGithub, FaMicroscope, FaRobot, FaCheckCircle, FaSpotify, FaDiscord, FaInstagram, FaTiktok, FaBook, FaGraduationCap, FaTrophy, FaScroll, FaLinkedin, FaTwitter, FaEnvelope } from "react-icons/fa";
 
@@ -1021,6 +1021,164 @@ function GalleryScrollSection() {
   );
 }
 
+// ─── Tools Carousel (stacked drag-carousel, adapted from shadcn carousel-07) ──
+function getToolsCarouselConfig(width) {
+  if (width < 640) {
+    return { distanceDivisor:120, velocityDivisor:500, sensitivity:180, xMultiplier:78, yMultiplier:16, rotationMultiplier:7, scaleReduction:0.08 };
+  }
+  if (width < 1024) {
+    return { distanceDivisor:160, velocityDivisor:650, sensitivity:220, xMultiplier:120, yMultiplier:24, rotationMultiplier:9, scaleReduction:0.10 };
+  }
+  return { distanceDivisor:200, velocityDivisor:800, sensitivity:250, xMultiplier:150, yMultiplier:32, rotationMultiplier:10, scaleReduction:0.12 };
+}
+
+function ToolCard({ tool, index, total, progress, config }) {
+  const offset = useTransform(progress, (p) => {
+    let diff = (index - p) % total;
+    if (diff > total / 2) diff -= total;
+    if (diff < -total / 2) diff += total;
+    return diff;
+  });
+
+  const x = useTransform(offset, (o) => o * config.xMultiplier);
+  const rotate = useTransform(offset, (o) => (Math.abs(o) < 0.05 ? 0 : o * config.rotationMultiplier));
+  const y = useTransform(offset, (o) => (Math.abs(o) < 0.05 ? 0 : Math.abs(o) * config.yMultiplier));
+  const scale = useTransform(offset, (o) => 1 - Math.abs(o) * config.scaleReduction);
+  const opacity = useTransform(offset, [-total / 2, -total / 2 + 0.6, 0, total / 2 - 0.6, total / 2], [0, 1, 1, 1, 0]);
+  const zIndex = useTransform(offset, (o) => Math.round(100 - Math.abs(o) * 10));
+  const contentOpacity = useTransform(offset, [-0.5, 0, 0.5], [0, 1, 0]);
+  const dim = useTransform(offset, [-2, -0.5, 0, 0.5, 2], [0.55, 0.2, 0, 0.2, 0.55]);
+
+  return (
+    <motion.div
+      style={{ x, rotate, y, scale, opacity, zIndex, position:"absolute", pointerEvents:"none" }}
+      className="w-40 h-52 sm:w-52 sm:h-64 lg:w-56 lg:h-72"
+    >
+      <div style={{
+        position:"relative", width:"100%", height:"100%", borderRadius:24, overflow:"hidden",
+        border:"1px solid rgba(255,255,255,0.16)", background:"rgba(255,255,255,0.06)",
+        backdropFilter:"blur(20px) saturate(180%)", WebkitBackdropFilter:"blur(20px) saturate(180%)",
+        boxShadow:"0 12px 36px rgba(0,0,0,0.45), inset 0 1px 0 rgba(255,255,255,0.10)",
+        display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", gap:14, padding:16,
+      }}>
+        <motion.div style={{ position:"absolute", inset:0, background:"#000", pointerEvents:"none", opacity: dim }} />
+        <span style={{ fontSize:42, color:"#e8702a", filter:"drop-shadow(0 4px 12px rgba(232,112,42,0.35))" }}>{tool.icon}</span>
+        <span style={{ fontSize:14, fontWeight:600, color:"rgba(255,255,255,0.90)", textAlign:"center" }}>{tool.name}</span>
+        <motion.span style={{
+          opacity: contentOpacity, display:"inline-flex", alignItems:"center", gap:6,
+          fontSize:11, color:"#e8702a", fontWeight:500, textTransform:"uppercase", letterSpacing:"0.12em",
+        }}>
+          Open <ExternalLink size={11} />
+        </motion.span>
+      </div>
+    </motion.div>
+  );
+}
+
+function ToolsCarousel({ tools }) {
+  const scrollProgress = useMotionValue(0);
+  const startProgress = useRef(0);
+  const dragDistanceRef = useRef(0);
+  const [windowWidth, setWindowWidth] = useState(typeof window !== "undefined" ? window.innerWidth : 1024);
+  const [activeIndex, setActiveIndex] = useState(0);
+
+  const total = tools.length;
+  const config = getToolsCarouselConfig(windowWidth);
+
+  useEffect(() => {
+    const handleResize = () => setWindowWidth(window.innerWidth);
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
+
+  useEffect(() => {
+    scrollProgress.set(0);
+    setActiveIndex(0);
+  }, [total]);
+
+  useEffect(() => {
+    return scrollProgress.on("change", (v) => {
+      const raw = Math.round(v);
+      setActiveIndex(((raw % total) + total) % total);
+    });
+  }, [scrollProgress, total]);
+
+  const goTo = (step) => {
+    const target = Math.round(scrollProgress.get()) + step;
+    animate(scrollProgress, target, { type:"spring", stiffness:200, damping:30, mass:1 });
+  };
+
+  const openActive = () => {
+    if (dragDistanceRef.current > 6) return;
+    const raw = Math.round(scrollProgress.get());
+    const idx = ((raw % total) + total) % total;
+    window.open(tools[idx].href, "_blank", "noopener,noreferrer");
+  };
+
+  const handleDragStart = () => {
+    startProgress.current = scrollProgress.get();
+    dragDistanceRef.current = 0;
+  };
+
+  const handleDrag = (_, info) => {
+    dragDistanceRef.current += Math.abs(info.delta.x);
+    const delta = -info.delta.x / config.sensitivity;
+    scrollProgress.set(scrollProgress.get() + delta);
+  };
+
+  const handleDragEnd = (_, info) => {
+    const distanceShift = -info.offset.x / config.distanceDivisor;
+    const velocityShift = -info.velocity.x / config.velocityDivisor;
+    let totalShift = Math.round(distanceShift + velocityShift);
+    totalShift = Math.max(-3, Math.min(3, totalShift));
+    const target = Math.round(startProgress.current) + totalShift;
+    animate(scrollProgress, target, { type:"spring", stiffness:200, damping:30, mass:1 });
+  };
+
+  if (total === 0) return null;
+
+  return (
+    <div style={{ display:"flex", flexDirection:"column", alignItems:"center", width:"100%" }}>
+      <div style={{ position:"relative", width:"100%", maxWidth:960, height: windowWidth < 640 ? 240 : windowWidth < 1024 ? 300 : 340, display:"flex", alignItems:"center", justifyContent:"center", userSelect:"none" }}>
+        <motion.div
+          drag="x"
+          dragConstraints={{ left:0, right:0 }}
+          dragElastic={0.08}
+          onDragStart={handleDragStart}
+          onDrag={handleDrag}
+          onDragEnd={handleDragEnd}
+          onClick={openActive}
+          style={{ position:"absolute", inset:0, zIndex:50, cursor:"grab" }}
+          whileTap={{ cursor:"grabbing" }}
+        />
+        {tools.map((tool, i) => (
+          <ToolCard key={tool.name} tool={tool} index={i} total={total} progress={scrollProgress} config={config} />
+        ))}
+      </div>
+
+      {/* Controls */}
+      <div style={{ display:"flex", alignItems:"center", gap:20, marginTop:28 }}>
+        <button onClick={() => goTo(-1)} aria-label="Previous tool" style={{
+          width:38, height:38, borderRadius:9999, border:"1px solid rgba(255,255,255,0.18)", background:"rgba(255,255,255,0.06)",
+          color:"#fff", display:"flex", alignItems:"center", justifyContent:"center", cursor:"pointer", transition:"all 0.25s",
+        }}>
+          <ChevronDown size={16} style={{ transform:"rotate(90deg)" }} />
+        </button>
+        <div style={{ fontSize:13, color:"rgba(255,255,255,0.55)", minWidth:120, textAlign:"center" }}>
+          <span style={{ color:"#e8702a", fontWeight:600 }}>{tools[activeIndex]?.name}</span>
+          <span style={{ display:"block", fontSize:11, marginTop:2 }}>{activeIndex + 1} / {total}</span>
+        </div>
+        <button onClick={() => goTo(1)} aria-label="Next tool" style={{
+          width:38, height:38, borderRadius:9999, border:"1px solid rgba(255,255,255,0.18)", background:"rgba(255,255,255,0.06)",
+          color:"#fff", display:"flex", alignItems:"center", justifyContent:"center", cursor:"pointer", transition:"all 0.25s",
+        }}>
+          <ChevronDown size={16} style={{ transform:"rotate(-90deg)" }} />
+        </button>
+      </div>
+    </div>
+  );
+}
+
 function ToolsSection() {
   const [query, setQuery] = useState("");
   const filtered = query.trim() === ""
@@ -1039,7 +1197,7 @@ function ToolsSection() {
           <h2 style={{ fontSize:"clamp(32px,5vw,56px)",fontWeight:500,letterSpacing:"-0.06em",lineHeight:0.95,marginBottom:12 }}>
             Quick access to <span className="font-playfair">all</span> tools.
           </h2>
-          <p style={{ color:"rgba(255,255,255,0.55)",fontSize:15,lineHeight:1.65,maxWidth:400,margin:"0 auto 32px" }}>Every productivity tool in one searchable place.</p>
+          <p style={{ color:"rgba(255,255,255,0.55)",fontSize:15,lineHeight:1.65,maxWidth:400,margin:"0 auto 32px" }}>Every productivity tool in one searchable place. Drag or tap the card to open it.</p>
           {/* Search */}
           <div style={{ position:"relative",maxWidth:480,margin:"0 auto" }}>
             <Search size={16} style={{ position:"absolute",left:18,top:"50%",transform:"translateY(-50%)",color:"rgba(255,255,255,0.35)",pointerEvents:"none" }} />
@@ -1047,20 +1205,12 @@ function ToolsSection() {
           </div>
         </div>
 
-        {/* Grid */}
-        <div style={{ display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(160px,1fr))",gap:16,maxWidth:1000,margin:"0 auto" }}>
-          {filtered.map(({ name, href, icon }) => (
-            <a key={name} href={href} target="_blank" rel="noopener noreferrer" className="tool-link-card">
-              <div className="tool-card-inner glass-panel" style={{ borderRadius:20,border:"1px solid rgba(255,255,255,0.18)",background:"rgba(255,255,255,0.07)",backdropFilter:"blur(20px) saturate(180%)",WebkitBackdropFilter:"blur(20px) saturate(180%)",boxShadow:"0 4px 24px rgba(0,0,0,0.20), inset 0 1px 0 rgba(255,255,255,0.12)",height:150,display:"flex",flexDirection:"column",justifyContent:"center",alignItems:"center",gap:12,transition:"all 0.3s",cursor:"pointer" }}>
-                <span style={{ fontSize:36, color:"#e8702a" }}>{icon}</span>
-                <span style={{ fontSize:13,fontWeight:500,color:"rgba(255,255,255,0.80)",textAlign:"center" }}>{name}</span>
-              </div>
-            </a>
-          ))}
-          {filtered.length === 0 && (
-            <div style={{ gridColumn:"1/-1",textAlign:"center",color:"rgba(255,255,255,0.40)",fontStyle:"italic",padding:40 }}>No tools found.</div>
-          )}
-        </div>
+        {/* Carousel */}
+        {filtered.length > 0 ? (
+          <ToolsCarousel key={query} tools={filtered} />
+        ) : (
+          <div style={{ textAlign:"center",color:"rgba(255,255,255,0.40)",fontStyle:"italic",padding:40 }}>No tools found.</div>
+        )}
       </div>
     </section>
   );
