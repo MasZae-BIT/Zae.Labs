@@ -2688,7 +2688,7 @@ function CTASection() {
             Ngobrol, bukan sekadar <span className="font-playfair">chat.</span>
           </h2>
           <p style={{ position:"relative",color:"rgba(255,255,255,0.65)",fontSize:16,lineHeight:1.65,maxWidth:480,margin:"0 auto 36px" }}>
-            Asisten AI dari Zae Labs — ketik atau ngomong langsung, jawabannya bisa didengar juga. Masih tahap awal, otak AI-nya nyusul.
+            Asisten AI dari Zae Labs. Ketik atau ngomong langsung, jawabannya bisa didengar juga. Masih tahap awal, jadi suaranya masih mirip robot.
           </p>
 
           <div style={{ position:"relative",marginBottom:36 }}>
