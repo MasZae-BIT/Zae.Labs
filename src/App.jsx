@@ -108,22 +108,9 @@ const GLOBAL_CSS = `
   .glass-panel > * { position: relative; z-index: 1; }
 
   @supports (backdrop-filter: url(#liquid-glass-distortion)) or (-webkit-backdrop-filter: url(#liquid-glass-distortion)) {
-    @media (min-width: 768px) and (pointer: fine) {
-      .glass-panel {
-        backdrop-filter: url(#liquid-glass-distortion) blur(20px) saturate(180%) !important;
-        -webkit-backdrop-filter: blur(20px) saturate(180%) !important;
-      }
-    }
-  }
-
-  /* ── Mobile perf: backdrop-filter blur itu salah satu operasi GPU paling
-     berat, apalagi ditumpuk 16x + distortion SVG di atas. Di HP kita turunin
-     blur-nya jadi jauh lebih ringan (dan matiin distortion SVG-nya sama
-     sekali) supaya scroll gak nge-lag, tanpa ngilangin efek glass-nya. */
-  @media (max-width: 767px), (pointer: coarse) {
-    * {
-      backdrop-filter: blur(8px) saturate(140%) !important;
-      -webkit-backdrop-filter: blur(8px) saturate(140%) !important;
+    .glass-panel {
+      backdrop-filter: url(#liquid-glass-distortion) blur(20px) saturate(180%) !important;
+      -webkit-backdrop-filter: blur(20px) saturate(180%) !important;
     }
   }
 
@@ -235,22 +222,15 @@ function LogoIcon({ size = 26, fill = "#fff" }) {
 
 // ─── Scroll-linked Rotating Object ─────────────────────────────────────────────
 function ScrollSpin({ size = 280, accent = "#e8702a", reverse = false, dim = 1, variant = "orbit" }) {
-  const wrapRef = useRef(null);
   const outerRef = useRef(null);
   const midRef = useRef(null);
   const rafRef = useRef(null);
 
   useEffect(() => {
-    const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    const isMobile = window.matchMedia("(max-width: 767px)").matches;
-    if (reduceMotion) return; // hormatin preferensi user, jangan paksa animasi jalan
-
     const dir = reverse ? -1 : 1;
-    // Idle-spin (gerak sendiri tanpa scroll) dimatiin di HP — paling berat karena
-    // jalan terus tanpa henti. Di HP shape cuma gerak kalau di-scroll (murah, event-driven).
-    const IDLE_SPEED = isMobile ? 0 : 6;
-    let running = false;
-    let startTime = Date.now();
+    let running = true;
+    const startTime = Date.now();
+    const IDLE_SPEED = 6; // deg per second, keeps shapes moving even without scroll
 
     const tick = () => {
       if (!running) return;
@@ -261,29 +241,10 @@ function ScrollSpin({ size = 280, accent = "#e8702a", reverse = false, dim = 1, 
       if (midRef.current) midRef.current.style.transform = `rotate(${idle * -1.6 + y * -0.19 * dir}deg)`;
       rafRef.current = requestAnimationFrame(tick);
     };
-
-    const start = () => {
-      if (running) return;
-      running = true;
-      startTime = Date.now();
-      rafRef.current = requestAnimationFrame(tick);
-    };
-    const stop = () => {
+    rafRef.current = requestAnimationFrame(tick);
+    return () => {
       running = false;
       if (rafRef.current) cancelAnimationFrame(rafRef.current);
-    };
-
-    // Cuma jalan pas elemennya kelihatan di viewport — hemat kalau lagi di
-    // section lain / belum ke-scroll ke situ.
-    const observer = new IntersectionObserver(
-      (entries) => { entries.forEach(e => (e.isIntersecting ? start() : stop())); },
-      { threshold: 0 }
-    );
-    if (wrapRef.current) observer.observe(wrapRef.current);
-
-    return () => {
-      stop();
-      observer.disconnect();
     };
   }, [reverse]);
 
@@ -373,7 +334,7 @@ function ScrollSpin({ size = 280, accent = "#e8702a", reverse = false, dim = 1, 
   }
 
   return (
-    <div ref={wrapRef} className="scroll-deco" style={{ position:"relative", width:size, height:size, pointerEvents:"none", opacity:dim }}>
+    <div className="scroll-deco" style={{ position:"relative", width:size, height:size, pointerEvents:"none", opacity:dim }}>
       {shape}
     </div>
   );
@@ -533,7 +494,6 @@ function HeroSection({ unlocked, setUnlocked }) {
   const smoothRef = useRef({ x: -999, y: -999 });
   const rafRef = useRef(null);
   const [cursorPos, setCursorPos] = useState({ x: -999, y: -999 });
-  const [spotlightEnabled, setSpotlightEnabled] = useState(false);
 
   // Lock scroll on mount, unlock when button clicked
   useEffect(() => {
@@ -546,40 +506,16 @@ function HeroSection({ unlocked, setUnlocked }) {
   }, [unlocked]);
 
   useEffect(() => {
-    // Efek spotlight cursor cuma masuk akal di perangkat dengan mouse asli.
-    // Di HP/tablet (touch) gak ada hover, jadi efeknya dimatiin total —
-    // sebelumnya loop-nya tetap jalan terus-menerus di HP walau gak kepakai,
-    // ini penyebab utama lag/boros baterai di mobile.
-    const isTouchDevice = window.matchMedia("(pointer: coarse)").matches;
-    if (isTouchDevice) return;
-    setSpotlightEnabled(true);
-
-    let raf = null;
-    let pending = false;
-    const onMove = e => {
-      mouseRef.current.x = e.clientX;
-      mouseRef.current.y = e.clientY;
-      if (!pending) {
-        pending = true;
-        raf = requestAnimationFrame(step);
-      }
-    };
-    // Event-driven: cuma jalan selagi masih ada gerakan yang perlu di-settle,
-    // lalu BERHENTI (bukan polling selamanya kayak sebelumnya).
-    const step = () => {
+    const onMove = e => { mouseRef.current.x = e.clientX; mouseRef.current.y = e.clientY; };
+    window.addEventListener("mousemove", onMove);
+    const loop = () => {
       smoothRef.current.x += (mouseRef.current.x - smoothRef.current.x) * 0.1;
       smoothRef.current.y += (mouseRef.current.y - smoothRef.current.y) * 0.1;
       setCursorPos({ x: smoothRef.current.x, y: smoothRef.current.y });
-      const dx = Math.abs(mouseRef.current.x - smoothRef.current.x);
-      const dy = Math.abs(mouseRef.current.y - smoothRef.current.y);
-      if (dx > 0.4 || dy > 0.4) {
-        raf = requestAnimationFrame(step);
-      } else {
-        pending = false;
-      }
+      rafRef.current = requestAnimationFrame(loop);
     };
-    window.addEventListener("mousemove", onMove, { passive: true });
-    return () => { window.removeEventListener("mousemove", onMove); if (raf) cancelAnimationFrame(raf); };
+    rafRef.current = requestAnimationFrame(loop);
+    return () => { window.removeEventListener("mousemove", onMove); if (rafRef.current) cancelAnimationFrame(rafRef.current); };
   }, []);
 
   const handleUnlock = () => {
@@ -592,13 +528,7 @@ function HeroSection({ unlocked, setUnlocked }) {
   return (
     <section id="hero" style={{ position:"relative",width:"100%",overflow:"hidden",height:"100dvh",background:"#000" }}>
       <div className="hero-zoom" style={{ position:"absolute",inset:0,backgroundImage:`url('${BG_IMAGE_1}')`,backgroundSize:"cover",backgroundPosition:"center",zIndex:10 }} />
-      {spotlightEnabled ? (
-        <RevealLayer image={BG_IMAGE_2} cursorX={cursorPos.x} cursorY={cursorPos.y} />
-      ) : (
-        // Fallback ringan buat mobile: gambar kedua ditampilkan statis (fade),
-        // tanpa canvas/mask sama sekali.
-        <div style={{ position:"absolute",inset:0,backgroundImage:`url('${BG_IMAGE_2}')`,backgroundSize:"cover",backgroundPosition:"center",zIndex:30,opacity:0.35,pointerEvents:"none" }} />
-      )}
+      <RevealLayer image={BG_IMAGE_2} cursorX={cursorPos.x} cursorY={cursorPos.y} />
 
       {/* Heading */}
       <div style={{ position:"absolute",top:"14%",left:0,right:0,display:"flex",flexDirection:"column",alignItems:"center",textAlign:"center",padding:"0 20px",pointerEvents:"none",zIndex:50 }}>
@@ -652,7 +582,6 @@ function PortfolioPhoto() {
       <div className="portfolio-photo-wrap photo-reveal" style={{ position:"relative", maxWidth:420, width:"100%" }}>
         <img src={PROFILE_PHOTO} alt="Irsya Zaelani"
           className="portfolio-photo-img"
-          loading="lazy" decoding="async"
           style={{ display:"block", width:"100%", aspectRatio:"4/5", objectFit:"cover", borderRadius:24, border:"1px solid rgba(255,255,255,0.10)", boxShadow:"0 24px 60px rgba(0,0,0,0.6)" }}
           onError={e => { e.currentTarget.style.display="none"; }}
         />
@@ -1062,7 +991,6 @@ function GalleryScrollSection() {
               <div style={{ position:"relative", height:"100%", width:"100%", overflow:"hidden", borderRadius:20, background:"#0a0a0a" }}>
                 {GALLERY_PHOTOS.map((src, i) => (
                   <img key={src} src={src} alt={`Zae Labs moment ${i + 1}`}
-                    loading="lazy" decoding="async"
                     style={{
                       position:"absolute", inset:0, width:"100%", height:"100%",
                       objectFit:"cover", display:"block",
@@ -2244,7 +2172,6 @@ const GlassDock: React.FC<{ icons: DockIcon[]; href?: string }> = ({
           key={index}
           src={icon.src}
           alt={icon.alt}
-          loading="lazy" decoding="async"
           className="w-16 h-16 transition-all duration-700 hover:scale-110 cursor-pointer"
           style={{
             transformOrigin: "center center",
