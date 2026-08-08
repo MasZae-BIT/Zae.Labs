@@ -25,7 +25,7 @@ Jawab dengan ramah, singkat (1-4 kalimat), dan natural dalam Bahasa Indonesia sa
 karena jawabanmu kadang akan dibacakan lewat suara (text-to-speech), jadi hindari format
 markdown, bullet list, atau simbol aneh yang janggal kalau dibacakan.`;
 
-module.exports = async (req, res) => {
+export default async function handler(req, res) {
   res.setHeader("Access-Control-Allow-Origin", "*");
   res.setHeader("Access-Control-Allow-Methods", "POST, OPTIONS");
   res.setHeader("Access-Control-Allow-Headers", "Content-Type");
@@ -94,4 +94,4 @@ module.exports = async (req, res) => {
       reply: "Ada error di server pas mroses pesanmu, coba lagi ya.",
     });
   }
-};
+}
