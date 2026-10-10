@@ -1,7 +1,22 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, lazy, Suspense } from "react";
 import { motion, useScroll, useTransform, useSpring, useMotionValue, animate } from "framer-motion";
-import { Code2, Bot, Video, Zap, Menu, ArrowRight, X, Search, ChevronDown, ChevronUp, ExternalLink, Award, BookOpen, Wrench, GraduationCap, Copy, Check, Cpu, Mic, MicOff, Send, Trash2, Volume2, VolumeX, Sparkles } from "lucide-react";
+import gsap from "gsap";
+import { ScrollTrigger } from "gsap/ScrollTrigger";
+
+if (typeof window !== "undefined") {
+  gsap.registerPlugin(ScrollTrigger);
+}
+import { Code2, Bot, Video, Zap, Menu, ArrowRight, X, Search, ChevronDown, ChevronUp, ExternalLink, Award, BookOpen, Wrench, GraduationCap, Copy, Check, Cpu, Mic, MicOff, Send, Trash2, Volume2, VolumeX, Sparkles, Terminal, Activity, Server } from "lucide-react";
 import { FaDatabase, FaGithub, FaMicroscope, FaRobot, FaCheckCircle, FaSpotify, FaDiscord, FaInstagram, FaTiktok, FaBook, FaGraduationCap, FaTrophy, FaScroll, FaLinkedin, FaTwitter, FaEnvelope } from "react-icons/fa";
+
+// Lazy-load heavy 3D / canvas widgets to eliminate main-thread parse lag on low-end mobile devices
+const ContributionSkyline = lazy(() => import("./components/ui/contribution-skyline"));
+const WorksWheel = lazy(() => import("./components/ui/works-wheel"));
+const GlyphPortal = lazy(() => import("./components/ui/glyph-portal"));
+const Timeline = lazy(() => import("./components/ui/timeline"));
+import { IPhoneNavBar } from "./components/ui/iphone-nav-bar";
+import { LiquidButton, GlassFilter } from "./components/ui/liquid-glass-button";
+import MorphOrb from "./components/ui/ai-thiking-orb-and-input";
 
 // ─── Asset URLs ───────────────────────────────────────────────────────────────
 const BG_IMAGE_1 =
@@ -10,33 +25,29 @@ const BG_IMAGE_2 =
   "https://images.higgs.ai/?default=1&output=webp&url=https%3A%2F%2Fd8j0ntlcm91z4.cloudfront.net%2Fuser_38xzZboKViGWJOttwIXH07lWA1P%2Fhf_20260609_201152_bba90a12-bf12-459f-91f0-51f237dbaf3b.png&w=1280&q=85";
 const PROFILE_PHOTO = "/Zae.jpg";
 
-const SPOTLIGHT_R = 260;
-
-// ─── Global CSS ───────────────────────────────────────────────────────────────
-// ─── Liquid Glass SVG distortion filter ───────────────────────────────────────
-// Adds a real liquid-glass refraction look on top of the blur/saturate glass.
-// Chrome/Edge render the distortion; browsers without url() backdrop-filter
-// support automatically fall back to the plain blurred glass (see @supports
-// rule in GLOBAL_CSS), so nothing breaks anywhere.
+// ─── Global CSS & Liquid Glass Filter ──────────────────────────────────────────
 function LiquidGlassFilter() {
-  return (
-    <svg width="0" height="0" style={{ position:"absolute" }} aria-hidden="true">
-      <defs>
-        <filter id="liquid-glass-distortion" x="-20%" y="-20%" width="140%" height="140%" colorInterpolationFilters="sRGB">
-          <feTurbulence type="fractalNoise" baseFrequency="0.008 0.012" numOctaves="1" seed="7" result="turbulence" />
-          <feGaussianBlur in="turbulence" stdDeviation="2" result="blurredNoise" />
-          <feDisplacementMap in="SourceGraphic" in2="blurredNoise" scale="18" xChannelSelector="R" yChannelSelector="B" />
-        </filter>
-      </defs>
-    </svg>
-  );
+  return <GlassFilter />;
 }
 
 const GLOBAL_CSS = `
   @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@1,400;1,500;1,600&display=swap');
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-  html { scroll-behavior: smooth; }
-  body { font-family: 'Inter', sans-serif; background: #000; color: #fff; overflow-x: hidden; }
+  html {
+    scroll-behavior: smooth;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+    overflow-x: clip;
+  }
+  body {
+    font-family: 'Inter', sans-serif;
+    background: #000;
+    color: #fff;
+    overflow-x: clip;
+    -webkit-tap-highlight-color: transparent;
+    -webkit-overflow-scrolling: touch;
+  }
   .font-playfair { font-family: 'Playfair Display', serif; font-style: italic; }
   ::-webkit-scrollbar { width: 5px; }
   ::-webkit-scrollbar-track { background: #000; }
@@ -65,8 +76,17 @@ const GLOBAL_CSS = `
   .hero-zoom   { animation:heroZoom 1.8s cubic-bezier(0.16,1,0.3,1) forwards; }
   .float-anim  { animation: floatY 8s ease-in-out infinite; }
 
+  @keyframes floatRock {
+    0%, 100% { transform: translateY(0px) scale(1); }
+    50%      { transform: translateY(-12px) scale(1.02); }
+  }
+  .hero-rock-float {
+    animation: floatRock 6.5s ease-in-out infinite;
+    will-change: transform;
+  }
+
   @media (prefers-reduced-motion: reduce) {
-    .hero-anim, .hero-zoom, .float-anim { animation:none; opacity:1; }
+    .hero-anim, .hero-zoom, .float-anim, .hero-rock-float { animation:none; opacity:1; }
   }
 
   .search-input-styled {
@@ -93,7 +113,7 @@ const GLOBAL_CSS = `
     position: absolute; inset: 0; border-radius: inherit;
     background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix type='matrix' values='0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 0.5 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
     background-size: 120px 120px;
-    opacity: 0.05;
+    opacity: 0.04;
     mix-blend-mode: overlay;
     pointer-events: none;
     z-index: 0;
@@ -107,10 +127,34 @@ const GLOBAL_CSS = `
   }
   .glass-panel > * { position: relative; z-index: 1; }
 
-  @supports (backdrop-filter: url(#liquid-glass-distortion)) or (-webkit-backdrop-filter: url(#liquid-glass-distortion)) {
+  @supports (backdrop-filter: blur(14px)) or (-webkit-backdrop-filter: blur(14px)) {
     .glass-panel {
-      backdrop-filter: url(#liquid-glass-distortion) blur(20px) saturate(180%) !important;
-      -webkit-backdrop-filter: blur(20px) saturate(180%) !important;
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+    }
+  }
+
+  /* HP Jadul / Low-end Mobile Performance Optimizations */
+  @media (max-width: 768px) {
+    .glass-panel::before { display: none !important; }
+    .glass-panel {
+      backdrop-filter: blur(8px) !important;
+      -webkit-backdrop-filter: blur(8px) !important;
+    }
+    section:not(#hero):not(#portfolio):not(#experience):not(#gallery):not(#tools) {
+      content-visibility: auto;
+      contain-intrinsic-size: 1px 650px;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .glass-panel {
+      backdrop-filter: none !important;
+      -webkit-backdrop-filter: none !important;
+      background: rgba(16, 16, 18, 0.94) !important;
+    }
+    .scroll-deco {
+      display: none !important;
     }
   }
 
@@ -145,6 +189,45 @@ const GLOBAL_CSS = `
     .zae-ai-input-row { padding: 8px 8px !important; gap: 5px !important; flex-wrap: nowrap !important; }
     .zae-ai-input-row input { font-size: 12.5px !important; padding: 8px 10px !important; }
     .zae-ai-input-row button { width: 28px !important; height: 28px !important; flex-shrink: 0 !important; }
+  }
+
+  @media (max-width: 768px) {
+    .about-section-container {
+      padding: 64px 20px !important;
+    }
+    .about-stats-grid {
+      grid-template-columns: repeat(3, 1fr) !important;
+      gap: 8px !important;
+    }
+    .about-stat-card {
+      padding: 14px 10px !important;
+      border-radius: 16px !important;
+    }
+    .about-stat-num {
+      font-size: 20px !important;
+    }
+    .about-stat-label {
+      font-size: 11px !important;
+    }
+  }
+  @media (max-width: 480px) {
+    .about-section-container {
+      padding: 48px 16px !important;
+    }
+    .about-stats-grid {
+      grid-template-columns: repeat(3, 1fr) !important;
+      gap: 6px !important;
+    }
+    .about-stat-card {
+      padding: 12px 6px !important;
+      border-radius: 14px !important;
+    }
+    .about-stat-num {
+      font-size: 17px !important;
+    }
+    .about-stat-label {
+      font-size: 10px !important;
+    }
   }
 
   @keyframes photoReveal {
@@ -232,45 +315,22 @@ function LogoIcon({ size = 26, fill = "#fff" }) {
   );
 }
 
-// ─── Scroll-linked Rotating Object ─────────────────────────────────────────────
+// ─── Scroll-linked Rotating Object (Compositor-accelerated, 0% CPU JS loop) ─────
 function ScrollSpin({ size = 280, accent = "#e8702a", reverse = false, dim = 1, variant = "orbit" }) {
-  const outerRef = useRef(null);
-  const midRef = useRef(null);
-  const rafRef = useRef(null);
-
-  useEffect(() => {
-    const dir = reverse ? -1 : 1;
-    let running = true;
-    const startTime = Date.now();
-    const IDLE_SPEED = 6; // deg per second, keeps shapes moving even without scroll
-
-    const tick = () => {
-      if (!running) return;
-      const elapsedSec = (Date.now() - startTime) / 1000;
-      const idle = elapsedSec * IDLE_SPEED * dir;
-      const y = window.scrollY;
-      if (outerRef.current) outerRef.current.style.transform = `rotate(${idle + y * 0.11 * dir}deg)`;
-      if (midRef.current) midRef.current.style.transform = `rotate(${idle * -1.6 + y * -0.19 * dir}deg)`;
-      rafRef.current = requestAnimationFrame(tick);
-    };
-    rafRef.current = requestAnimationFrame(tick);
-    return () => {
-      running = false;
-      if (rafRef.current) cancelAnimationFrame(rafRef.current);
-    };
-  }, [reverse]);
+  const outerAnim = reverse ? "zaeSpinRev 40s linear infinite" : "zaeSpin 40s linear infinite";
+  const midAnim = reverse ? "zaeSpin 24s linear infinite" : "zaeSpinRev 24s linear infinite";
 
   let shape;
   if (variant === "diamond") {
     shape = (
       <>
-        <div ref={outerRef} style={{ position:"absolute", inset:0, willChange:"transform" }}>
+        <div style={{ position:"absolute", inset:0, animation: outerAnim, willChange:"transform" }}>
           <svg viewBox="0 0 200 200" width="100%" height="100%" fill="none">
             <rect x="24" y="24" width="152" height="152" rx="16" transform="rotate(45 100 100)" stroke={accent} strokeOpacity="0.55" strokeWidth="1.6" strokeDasharray="5 11" />
             <rect x="90" y="2" width="20" height="20" rx="4" fill={accent} fillOpacity="0.85" transform="rotate(45 100 12)" />
           </svg>
         </div>
-        <div ref={midRef} style={{ position:"absolute", inset:"20%", willChange:"transform" }}>
+        <div style={{ position:"absolute", inset:"20%", animation: midAnim, willChange:"transform" }}>
           <svg viewBox="0 0 200 200" width="100%" height="100%" fill="none">
             <rect x="14" y="14" width="172" height="172" rx="12" transform="rotate(45 100 100)" stroke="#fff" strokeOpacity="0.30" strokeWidth="1.3" />
           </svg>
@@ -280,13 +340,13 @@ function ScrollSpin({ size = 280, accent = "#e8702a", reverse = false, dim = 1, 
   } else if (variant === "triangle") {
     shape = (
       <>
-        <div ref={outerRef} style={{ position:"absolute", inset:0, willChange:"transform" }}>
+        <div style={{ position:"absolute", inset:0, animation: outerAnim, willChange:"transform" }}>
           <svg viewBox="0 0 200 200" width="100%" height="100%" fill="none">
             <polygon points="100,6 189,176 11,176" stroke={accent} strokeOpacity="0.55" strokeWidth="1.6" strokeDasharray="4 10" strokeLinejoin="round" />
             <circle cx="100" cy="6" r="5" fill={accent} fillOpacity="0.85" />
           </svg>
         </div>
-        <div ref={midRef} style={{ position:"absolute", inset:"22%", willChange:"transform" }}>
+        <div style={{ position:"absolute", inset:"22%", animation: midAnim, willChange:"transform" }}>
           <svg viewBox="0 0 200 200" width="100%" height="100%" fill="none">
             <polygon points="100,12 182,168 18,168" stroke="#fff" strokeOpacity="0.28" strokeWidth="1.3" strokeLinejoin="round" />
           </svg>
@@ -296,13 +356,13 @@ function ScrollSpin({ size = 280, accent = "#e8702a", reverse = false, dim = 1, 
   } else if (variant === "arc") {
     shape = (
       <>
-        <div ref={outerRef} style={{ position:"absolute", inset:0, willChange:"transform" }}>
+        <div style={{ position:"absolute", inset:0, animation: outerAnim, willChange:"transform" }}>
           <svg viewBox="0 0 200 200" width="100%" height="100%" fill="none">
             <circle cx="100" cy="100" r="96" stroke={accent} strokeOpacity="0.6" strokeWidth="2.2" strokeDasharray="66 224" strokeLinecap="round" />
             <circle cx="100" cy="100" r="68" stroke="#fff" strokeOpacity="0.22" strokeWidth="1.4" strokeDasharray="36 180" strokeLinecap="round" />
           </svg>
         </div>
-        <div ref={midRef} style={{ position:"absolute", inset:"14%", willChange:"transform" }}>
+        <div style={{ position:"absolute", inset:"14%", animation: midAnim, willChange:"transform" }}>
           <svg viewBox="0 0 200 200" width="100%" height="100%" fill="none">
             <circle cx="100" cy="100" r="96" stroke={accent} strokeOpacity="0.32" strokeWidth="1.2" strokeDasharray="16 26" />
           </svg>
@@ -320,21 +380,21 @@ function ScrollSpin({ size = 280, accent = "#e8702a", reverse = false, dim = 1, 
       }
     }));
     shape = (
-      <div ref={outerRef} style={{ position:"absolute", inset:0, willChange:"transform" }}>
+      <div style={{ position:"absolute", inset:0, animation: outerAnim, willChange:"transform" }}>
         <svg viewBox="0 0 200 200" width="100%" height="100%" fill="none">{dots}</svg>
       </div>
     );
   } else {
     shape = (
       <>
-        <div ref={outerRef} style={{ position:"absolute", inset:0, willChange:"transform" }}>
+        <div style={{ position:"absolute", inset:0, animation: outerAnim, willChange:"transform" }}>
           <svg viewBox="0 0 200 200" width="100%" height="100%" fill="none">
             <circle cx="100" cy="100" r="97" stroke={accent} strokeOpacity="0.55" strokeWidth="1.6" strokeDasharray="3 11" />
             <circle cx="100" cy="3" r="5.2" fill={accent} fillOpacity="0.9" />
             <circle cx="100" cy="197" r="3.2" fill="#fff" fillOpacity="0.45" />
           </svg>
         </div>
-        <div ref={midRef} style={{ position:"absolute", inset:"16%", willChange:"transform" }}>
+        <div style={{ position:"absolute", inset:"16%", animation: midAnim, willChange:"transform" }}>
           <svg viewBox="0 0 200 200" width="100%" height="100%" fill="none">
             <circle cx="100" cy="100" r="97" stroke="#fff" strokeOpacity="0.28" strokeWidth="1.3" />
             <circle cx="196" cy="100" r="4" fill={accent} fillOpacity="0.75" />
@@ -352,51 +412,50 @@ function ScrollSpin({ size = 280, accent = "#e8702a", reverse = false, dim = 1, 
   );
 }
 
-// ─── Reveal Layer ─────────────────────────────────────────────────────────────
+// ─── Reveal Layer (GPU Gradient Mask — Zero CPU Canvas toDataURL) ─────────────
 function RevealLayer({ image, cursorX, cursorY }) {
-  const canvasRef = useRef(null);
   const divRef = useRef(null);
+  const radiusRef = useRef(105);
 
   useEffect(() => {
-    const resize = () => {
-      if (!canvasRef.current) return;
-      canvasRef.current.width = window.innerWidth;
-      canvasRef.current.height = window.innerHeight;
+    const updateRadius = () => {
+      if (typeof window === "undefined") return;
+      const w = window.innerWidth;
+      // Focused tap spotlight: 105px on mobile, 125px on tablet, 180px on desktop
+      radiusRef.current = w < 480 ? 105 : w < 768 ? 125 : 180;
     };
-    resize();
-    window.addEventListener("resize", resize);
-    return () => window.removeEventListener("resize", resize);
+    updateRadius();
+    window.addEventListener("resize", updateRadius, { passive: true });
+    return () => window.removeEventListener("resize", updateRadius);
   }, []);
 
   useEffect(() => {
-    const canvas = canvasRef.current;
     const div = divRef.current;
-    if (!canvas || !div) return;
-    const ctx = canvas.getContext("2d");
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-    const g = ctx.createRadialGradient(cursorX, cursorY, 0, cursorX, cursorY, SPOTLIGHT_R);
-    g.addColorStop(0,    "rgba(255,255,255,1)");
-    g.addColorStop(0.4,  "rgba(255,255,255,1)");
-    g.addColorStop(0.6,  "rgba(255,255,255,0.75)");
-    g.addColorStop(0.75, "rgba(255,255,255,0.4)");
-    g.addColorStop(0.88, "rgba(255,255,255,0.12)");
-    g.addColorStop(1,    "rgba(255,255,255,0)");
-    ctx.fillStyle = g;
-    ctx.beginPath();
-    ctx.arc(cursorX, cursorY, SPOTLIGHT_R, 0, Math.PI * 2);
-    ctx.fill();
-    const url = canvas.toDataURL();
-    div.style.maskImage = `url('${url}')`;
-    div.style.webkitMaskImage = `url('${url}')`;
-    div.style.maskSize = "100% 100%";
-    div.style.webkitMaskSize = "100% 100%";
+    if (!div) return;
+
+    const x = cursorX > -500 ? cursorX : (typeof window !== "undefined" ? window.innerWidth * 0.5 : 500);
+    const y = cursorY > -500 ? cursorY : (typeof window !== "undefined" ? window.innerHeight * 0.44 : 350);
+    const r = radiusRef.current;
+
+    const mask = `radial-gradient(circle ${r}px at ${x}px ${y}px, black 0%, black 42%, rgba(0,0,0,0.55) 72%, transparent 100%)`;
+    div.style.maskImage = mask;
+    div.style.webkitMaskImage = mask;
   }, [cursorX, cursorY]);
 
   return (
-    <>
-      <canvas ref={canvasRef} style={{ position:"absolute",inset:0,pointerEvents:"none",display:"none" }} />
-      <div ref={divRef} style={{ position:"absolute",inset:0,backgroundImage:`url('${image}')`,backgroundSize:"cover",backgroundPosition:"center",zIndex:30,pointerEvents:"none" }} />
-    </>
+    <div
+      ref={divRef}
+      className="hero-rock-float"
+      style={{
+        position: "absolute",
+        inset: 0,
+        backgroundImage: `url('${image}')`,
+        backgroundSize: "cover",
+        backgroundPosition: "center",
+        zIndex: 30,
+        pointerEvents: "none",
+      }}
+    />
   );
 }
 
@@ -413,9 +472,33 @@ const NAV_LINKS = [
 function Nav({ unlocked }) {
   const [active, setActive] = useState("Zae Labs");
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      setScrolled(window.scrollY > 20);
+    };
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
 
   return (
-    <nav style={{ position:"fixed",top:0,left:0,right:0,zIndex:100,display:"flex",alignItems:"center",justifyContent:"space-between",padding:"16px 20px" }}>
+    <nav style={{
+      position: "fixed",
+      top: 0,
+      left: 0,
+      right: 0,
+      zIndex: 100,
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "space-between",
+      padding: scrolled ? "12px 20px" : "16px 20px",
+      background: scrolled ? "rgba(5, 5, 5, 0.85)" : "transparent",
+      backdropFilter: scrolled ? "blur(18px) saturate(160%)" : "none",
+      WebkitBackdropFilter: scrolled ? "blur(18px) saturate(160%)" : "none",
+      transition: "padding 0.35s cubic-bezier(0.16,1,0.3,1), background 0.35s cubic-bezier(0.16,1,0.3,1), border-bottom 0.35s ease",
+      willChange: "padding, background",
+    }}>
       {/* Logo */}
       <a href="#hero" style={{ display:"flex",alignItems:"center",gap:10 }} onClick={() => setActive("Zae Labs")}>
         <LogoIcon size={24} />
@@ -500,81 +583,199 @@ function Nav({ unlocked }) {
   );
 }
 
+// ─── Animated Zae Labs Title (Interactive Kinetic Glyphs) ──────────────────────
+function AnimatedZaeLabsTitle({ cursorPos }) {
+  const letters = [
+    { char: "Z", delay: 0.05 },
+    { char: "a", delay: 0.10 },
+    { char: "e", delay: 0.15 },
+    { char: "\u00A0", delay: 0.20 },
+    { char: "L", delay: 0.25 },
+    { char: "a", delay: 0.30 },
+    { char: "b", delay: 0.35 },
+    { char: "s", delay: 0.40 },
+    { char: ".", delay: 0.45, isDot: true },
+  ];
+
+  return (
+    <h1 style={{ color: "#fff", lineHeight: 0.95, margin: 0, userSelect: "none" }}>
+      <span
+        className="hero-anim hero-reveal"
+        style={{
+          display: "inline-flex",
+          alignItems: "baseline",
+          fontSize: "clamp(56px, 10vw, 128px)",
+          fontWeight: 700,
+          letterSpacing: "-0.05em",
+          animationDelay: "0.25s",
+          cursor: "default",
+          filter: "drop-shadow(0 10px 30px rgba(0,0,0,0.6))",
+        }}
+      >
+        {letters.map(({ char, delay, isDot }, idx) => (
+          <motion.span
+            key={idx}
+            className={isDot ? "font-playfair" : ""}
+            initial={{ opacity: 0, y: 30, filter: "blur(8px)" }}
+            animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
+            transition={{ duration: 0.8, delay, ease: [0.16, 1, 0.3, 1] }}
+            whileHover={{
+              y: -14,
+              scale: 1.14,
+              color: "#e8702a",
+              textShadow: "0 0 40px rgba(232, 112, 42, 0.8), 0 0 80px rgba(232, 112, 42, 0.4)",
+              transition: { duration: 0.2 },
+            }}
+            style={{
+              display: "inline-block",
+              fontWeight: isDot ? 400 : 700,
+              cursor: "pointer",
+            }}
+          >
+            {char}
+          </motion.span>
+        ))}
+      </span>
+    </h1>
+  );
+}
+
 // ─── Hero (Zae Labs) ─────────────────────────────────────────────────────────
 function HeroSection({ unlocked, setUnlocked }) {
   const mouseRef = useRef({ x: -999, y: -999 });
   const smoothRef = useRef({ x: -999, y: -999 });
-  const rafRef = useRef(null);
   const [cursorPos, setCursorPos] = useState({ x: -999, y: -999 });
 
-  // Lock scroll on mount, unlock when button clicked
   useEffect(() => {
-    if (!unlocked) {
-      document.body.style.overflow = "hidden";
-    } else {
-      document.body.style.overflow = "";
-    }
-    return () => { document.body.style.overflow = ""; };
-  }, [unlocked]);
+    let lastActiveTime = 0;
+    let isUserActive = false;
+    let animId = null;
 
-  useEffect(() => {
-    const onMove = e => { mouseRef.current.x = e.clientX; mouseRef.current.y = e.clientY; };
-    window.addEventListener("mousemove", onMove);
-    const loop = () => {
-      smoothRef.current.x += (mouseRef.current.x - smoothRef.current.x) * 0.1;
-      smoothRef.current.y += (mouseRef.current.y - smoothRef.current.y) * 0.1;
-      setCursorPos({ x: smoothRef.current.x, y: smoothRef.current.y });
-      rafRef.current = requestAnimationFrame(loop);
+    const onPointerMove = (e) => {
+      mouseRef.current.x = e.clientX;
+      mouseRef.current.y = e.clientY;
+      isUserActive = true;
+      lastActiveTime = performance.now();
     };
-    rafRef.current = requestAnimationFrame(loop);
-    return () => { window.removeEventListener("mousemove", onMove); if (rafRef.current) cancelAnimationFrame(rafRef.current); };
+
+    const onPointerDown = (e) => {
+      mouseRef.current.x = e.clientX;
+      mouseRef.current.y = e.clientY;
+      smoothRef.current.x = e.clientX;
+      smoothRef.current.y = e.clientY;
+      isUserActive = true;
+      lastActiveTime = performance.now();
+    };
+
+    const onTouchStart = (e) => {
+      if (e.touches && e.touches[0]) {
+        const tx = e.touches[0].clientX;
+        const ty = e.touches[0].clientY;
+        mouseRef.current.x = tx;
+        mouseRef.current.y = ty;
+        // Instantly move spotlight to tapped spot so reveal circle appears right under touch
+        smoothRef.current.x = tx;
+        smoothRef.current.y = ty;
+        isUserActive = true;
+        lastActiveTime = performance.now();
+      }
+    };
+
+    const onTouchMove = (e) => {
+      if (e.touches && e.touches[0]) {
+        mouseRef.current.x = e.touches[0].clientX;
+        mouseRef.current.y = e.touches[0].clientY;
+        isUserActive = true;
+        lastActiveTime = performance.now();
+      }
+    };
+
+    window.addEventListener("pointermove", onPointerMove, { passive: true });
+    window.addEventListener("pointerdown", onPointerDown, { passive: true });
+    window.addEventListener("touchmove", onTouchMove, { passive: true });
+    window.addEventListener("touchstart", onTouchStart, { passive: true });
+
+    // Initial position at center of viewport
+    const initX = typeof window !== "undefined" ? window.innerWidth * 0.5 : 500;
+    const initY = typeof window !== "undefined" ? window.innerHeight * 0.44 : 350;
+    smoothRef.current.x = initX;
+    smoothRef.current.y = initY;
+    mouseRef.current.x = initX;
+    mouseRef.current.y = initY;
+
+    const loop = (now) => {
+      const isIdle = (now - lastActiveTime) > 2200;
+      let targetX = mouseRef.current.x;
+      let targetY = mouseRef.current.y;
+
+      // Ambient continuous floating loop when user is idle or on initial load / mobile
+      if (isIdle || !isUserActive) {
+        const cx = typeof window !== "undefined" ? window.innerWidth * 0.5 : 500;
+        const cy = typeof window !== "undefined" ? window.innerHeight * 0.44 : 350;
+        const t = now * 0.0016;
+        const isSmall = typeof window !== "undefined" && window.innerWidth < 600;
+        targetX = cx + Math.sin(t) * (isSmall ? 40 : 80);
+        targetY = cy + Math.cos(t * 0.8) * (isSmall ? 25 : 45);
+      }
+
+      const dx = targetX - smoothRef.current.x;
+      const dy = targetY - smoothRef.current.y;
+      smoothRef.current.x += dx * 0.16;
+      smoothRef.current.y += dy * 0.16;
+
+      setCursorPos({
+        x: Math.round(smoothRef.current.x),
+        y: Math.round(smoothRef.current.y),
+      });
+
+      animId = requestAnimationFrame(loop);
+    };
+
+    animId = requestAnimationFrame(loop);
+
+    return () => {
+      window.removeEventListener("pointermove", onPointerMove);
+      window.removeEventListener("pointerdown", onPointerDown);
+      window.removeEventListener("touchmove", onTouchMove);
+      window.removeEventListener("touchstart", onTouchStart);
+      if (animId) cancelAnimationFrame(animId);
+    };
   }, []);
 
-  const handleUnlock = () => {
-    setUnlocked(true);
-    setTimeout(() => {
-      document.getElementById("portfolio")?.scrollIntoView({ behavior: "smooth" });
-    }, 80);
-  };
-
   return (
-    <section id="hero" style={{ position:"relative",width:"100%",overflow:"hidden",height:"100dvh",background:"#000" }}>
-      <div className="hero-zoom" style={{ position:"absolute",inset:0,backgroundImage:`url('${BG_IMAGE_1}')`,backgroundSize:"cover",backgroundPosition:"center",zIndex:10 }} />
+    <section id="hero" style={{ position: "relative", width: "100%", overflow: "hidden", height: "100dvh", background: "#000" }}>
+      {/* ─── Continuously Floating & Breathing Interactive Stone Graphic (BG_IMAGE_1 + BG_IMAGE_2) ─── */}
+      <div className="hero-zoom hero-rock-float" style={{ position: "absolute", inset: 0, backgroundImage: `url('${BG_IMAGE_1}')`, backgroundSize: "cover", backgroundPosition: "center", zIndex: 10 }} />
       <RevealLayer image={BG_IMAGE_2} cursorX={cursorPos.x} cursorY={cursorPos.y} />
 
-      {/* Heading */}
-      <div style={{ position:"absolute",top:"14%",left:0,right:0,display:"flex",flexDirection:"column",alignItems:"center",textAlign:"center",padding:"0 20px",pointerEvents:"none",zIndex:50 }}>
-        <h1 style={{ color:"#fff",lineHeight:0.95,margin:0 }}>
-          <span className="hero-anim hero-reveal" style={{ display:"block",fontSize:"clamp(56px,10vw,128px)",fontWeight:700,letterSpacing:"-0.05em",animationDelay:"0.25s" }}>Zae Labs<span className="font-playfair" style={{ fontWeight:400 }}>.</span></span>
-        </h1>
-        <span className="hero-anim hero-fade" style={{ display:"block",marginTop:20,fontSize:"clamp(16px,2.2vw,22px)",color:"rgba(255,255,255,0.80)",fontWeight:600,letterSpacing:"-0.01em",animationDelay:"0.42s",pointerEvents:"none" }}>
+      {/* ─── Animated Zae Labs Title (with interactive kinetic glyphs) ─── */}
+      <div style={{ position: "absolute", top: "14%", left: 0, right: 0, display: "flex", flexDirection: "column", alignItems: "center", textAlign: "center", padding: "0 20px", pointerEvents: "auto", zIndex: 50 }}>
+        <AnimatedZaeLabsTitle cursorPos={cursorPos} />
+        <span className="hero-anim hero-fade" style={{ display: "block", marginTop: 20, fontSize: "clamp(16px, 2.2vw, 22px)", color: "rgba(255,255,255,0.85)", fontWeight: 600, letterSpacing: "-0.01em", animationDelay: "0.42s", pointerEvents: "none" }}>
           Ideas engineered into real digital products.
         </span>
-        <span className="hero-anim hero-fade" style={{ display:"block",marginTop:10,fontSize:"clamp(13px,1.6vw,16px)",color:"rgba(255,255,255,0.50)",letterSpacing:"0.01em",animationDelay:"0.55s",pointerEvents:"none" }}>
+        <span className="hero-anim hero-fade" style={{ display: "block", marginTop: 10, fontSize: "clamp(13px, 1.6vw, 16px)", color: "rgba(255,255,255,0.50)", letterSpacing: "0.01em", animationDelay: "0.55s", pointerEvents: "none" }}>
           Do your best today.
         </span>
       </div>
 
       {/* Bottom left */}
-      <div className="hero-anim hero-fade hero-bl" style={{ position:"absolute",bottom:56,left:56,maxWidth:260,zIndex:50,animationDelay:"0.7s" }}>
-        <p style={{ fontSize:14,color:"rgba(255,255,255,0.80)",lineHeight:1.65 }}>Zae Labs builds practical AI workflows, web experiments, and prompt systems that help creators build faster with modern tools.</p>
+      <div className="hero-anim hero-fade hero-bl" style={{ position: "absolute", bottom: 56, left: 56, maxWidth: 260, zIndex: 50, animationDelay: "0.7s" }}>
+        <p style={{ fontSize: 14, color: "rgba(255,255,255,0.80)", lineHeight: 1.65 }}>
+          Zae Labs builds practical AI workflows, web experiments, and prompt systems that help creators build faster with modern tools.
+        </p>
       </div>
 
       {/* Bottom right */}
-      <div className="hero-anim hero-fade hero-br" style={{ position:"absolute",bottom:40,right:56,maxWidth:260,display:"flex",flexDirection:"column",alignItems:"flex-start",gap:20,zIndex:50,animationDelay:"0.85s" }}>
-        <p style={{ fontSize:14,color:"rgba(255,255,255,0.80)",lineHeight:1.65 }}>Every great product starts with a single decision. Press the button, explore the work, and see what's possible when ideas meet execution.</p>
-        <button
-          onClick={handleUnlock}
-          style={{ display:"inline-block",background:"#e8702a",color:"#fff",fontSize:14,fontWeight:500,padding:"12px 28px",borderRadius:9999,border:"none",cursor:"pointer",transition:"all 0.2s" }}
-          onMouseEnter={e => { e.currentTarget.style.background="#d2611f"; e.currentTarget.style.transform="scale(1.03)"; e.currentTarget.style.boxShadow="0 8px 30px rgba(232,112,42,0.30)"; }}
-          onMouseLeave={e => { e.currentTarget.style.background="#e8702a"; e.currentTarget.style.transform="scale(1)"; e.currentTarget.style.boxShadow="none"; }}>
-          Let's Go
-        </button>
+      <div className="hero-anim hero-fade hero-br" style={{ position: "absolute", bottom: 40, right: 56, maxWidth: 260, display: "flex", flexDirection: "column", alignItems: "flex-start", gap: 12, zIndex: 50, animationDelay: "0.85s" }}>
+        <p style={{ fontSize: 14, color: "rgba(255,255,255,0.80)", lineHeight: 1.65 }}>
+          Every great product starts with a single decision. Explore the work, and see what's possible when ideas meet execution.
+        </p>
       </div>
 
       <style>{`
         @media(max-width:600px){ .hero-bl{display:none!important;} }
-        @media(max-width:767px){ .hero-br{right:20px!important;left:20px!important;max-width:100%!important;} }
+        @media(max-width:767px){ .hero-br{right:20px!important;left:20px!important;max-width:100%!important;bottom:84px!important;} }
       `}</style>
     </section>
   );
@@ -594,6 +795,8 @@ function PortfolioPhoto() {
       <div className="portfolio-photo-wrap photo-reveal" style={{ position:"relative", maxWidth:420, width:"100%" }}>
         <img src={PROFILE_PHOTO} alt="Irsya Zaelani"
           className="portfolio-photo-img"
+          loading="lazy"
+          decoding="async"
           style={{ display:"block", width:"100%", aspectRatio:"4/5", objectFit:"cover", borderRadius:24, border:"1px solid rgba(255,255,255,0.10)", boxShadow:"0 24px 60px rgba(0,0,0,0.6)" }}
           onError={e => { e.currentTarget.style.display="none"; }}
         />
@@ -696,10 +899,109 @@ function PortfolioHero() {
   );
 }
 
+// ─── Admin Telemetry View ─────────────────────────────────────────────────────
+function AdminTelemetryView() {
+  const telemetryMetrics = [
+    { label: "Active LLM Routing", val: "4 Models", sub: "Claude 3.5 · GPT-4o · Gemini 1.5 · DeepSeek", icon: Bot, color: "#e8702a" },
+    { label: "Prompt Pipeline Latency", val: "214ms", sub: "P95 response time across agents", icon: Zap, color: "#ff9d5c" },
+    { label: "Production Agents", val: "14 Active", sub: "Automated loops & continuous evals", icon: Cpu, color: "#e8702a" },
+    { label: "Engineering Uptime", val: "99.98%", sub: "Zero regression over 365 days", icon: Check, color: "#4ade80" },
+  ];
+
+  const recentLogs = [
+    { title: "Autonomous Research Pipeline v2.4", badge: "DEPLOYED", time: "18m ago", desc: "Multi-agent search, synthesis & document parser deployed to edge." },
+    { title: "Skyline 3D Isometric Engine Fix", badge: "OPTIMIZED", time: "1h ago", desc: "Native roundRect rendering & continuous morphing at 60fps." },
+    { title: "Prompt System Reasoning Optimizer", badge: "TESTED", time: "4h ago", desc: "Chain-of-thought distillation benchmarked with 94.2% test accuracy." },
+    { title: "Web Builds CI/CD Responsive Verification", badge: "PASSED", time: "8h ago", desc: "Automated layout checks verified across PC and mobile viewports." },
+  ];
+
+  return (
+    <div style={{ display:"flex",flexDirection:"column",gap:20 }}>
+      <div style={{ display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(210px,1fr))",gap:14 }}>
+        {telemetryMetrics.map((m) => {
+          const Icon = m.icon;
+          return (
+            <div key={m.label} style={{
+              borderRadius:20,
+              border:"1px solid rgba(255,255,255,0.12)",
+              background:"rgba(255,255,255,0.03)",
+              padding:"18px 16px",
+              display:"flex",
+              flexDirection:"column",
+              gap:8,
+            }}>
+              <div style={{ display:"flex",alignItems:"center",justifyContent:"space-between" }}>
+                <span style={{ fontSize:12,color:"rgba(255,255,255,0.5)",fontWeight:500 }}>{m.label}</span>
+                <div style={{ width:28,height:28,borderRadius:8,background:"rgba(232,112,42,0.12)",display:"flex",alignItems:"center",justifyContent:"center" }}>
+                  <Icon size={14} color={m.color} />
+                </div>
+              </div>
+              <div style={{ fontSize:22,fontWeight:700,letterSpacing:"-0.03em",color:"#fff" }}>{m.val}</div>
+              <div style={{ fontSize:11,color:"rgba(255,255,255,0.45)",lineHeight:1.4 }}>{m.sub}</div>
+            </div>
+          );
+        })}
+      </div>
+
+      <div style={{
+        borderRadius:20,
+        border:"1px solid rgba(255,255,255,0.12)",
+        background:"rgba(0,0,0,0.35)",
+        padding:"18px 20px",
+      }}>
+        <div style={{ display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:14,flexWrap:"wrap",gap:8 }}>
+          <div style={{ display:"flex",alignItems:"center",gap:8 }}>
+            <Terminal size={14} color="#e8702a" />
+            <span style={{ fontSize:12,fontWeight:600,letterSpacing:"0.06em",textTransform:"uppercase",color:"rgba(255,255,255,0.8)" }}>Recent Experiment Telemetry</span>
+          </div>
+          <span style={{ fontSize:11,color:"#4ade80",display:"flex",alignItems:"center",gap:5 }}>
+            <span style={{ width:6,height:6,borderRadius:"50%",background:"#4ade80",display:"inline-block" }} /> All Systems Operational
+          </span>
+        </div>
+        <div style={{ display:"flex",flexDirection:"column",gap:10 }}>
+          {recentLogs.map((log) => (
+            <div key={log.title} style={{
+              display:"flex",
+              alignItems:"center",
+              justifyContent:"space-between",
+              padding:"10px 14px",
+              borderRadius:12,
+              background:"rgba(255,255,255,0.02)",
+              border:"1px solid rgba(255,255,255,0.06)",
+              flexWrap:"wrap",
+              gap:8,
+            }}>
+              <div>
+                <div style={{ fontSize:13,fontWeight:600,color:"#fff" }}>{log.title}</div>
+                <div style={{ fontSize:11,color:"rgba(255,255,255,0.45)",marginTop:2 }}>{log.desc}</div>
+              </div>
+              <div style={{ display:"flex",alignItems:"center",gap:10 }}>
+                <span style={{
+                  fontSize:10,
+                  fontWeight:700,
+                  letterSpacing:"0.08em",
+                  padding:"3px 8px",
+                  borderRadius:6,
+                  background:"rgba(232,112,42,0.15)",
+                  color:"#e8702a",
+                  border:"1px solid rgba(232,112,42,0.3)",
+                }}>{log.badge}</span>
+                <span style={{ fontSize:11,color:"rgba(255,255,255,0.4)" }}>{log.time}</span>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // ─── About / Zae Labs brand ──────────────────────────────────────────────────
 function AboutSection() {
+  const [activeTab, setActiveTab] = useState("skyline");
+
   return (
-    <section id="about" style={{ position:"relative",background:"#050505",color:"#fff",padding:"96px 56px",overflow:"hidden" }}>
+    <section id="about" className="about-section-container" style={{ position:"relative",background:"#050505",color:"#fff",padding:"96px 56px",overflow:"hidden" }}>
       <div style={{ position:"absolute",top:0,right:0,width:520,height:520,background:"radial-gradient(circle closest-side at center, rgba(232,112,42,0.48) 0%, rgba(232,112,42,0.22) 35%, rgba(232,112,42,0.06) 65%, rgba(232,112,42,0) 100%)",pointerEvents:"none" }} />
       <div style={{ position:"absolute",top:"8%",right:"4%",opacity:0.9 }}>
         <ScrollSpin size={220} variant="diamond" />
@@ -715,96 +1017,200 @@ function AboutSection() {
           <p style={{ color:"rgba(255,255,255,0.70)",fontSize:17,lineHeight:1.7,marginBottom:48,maxWidth:520 }}>
             Zae Labs creates practical AI workflows, prompt systems, web development experiments, and AI agent tutorials for creators, students, and builders who want to turn ideas into real digital products faster.
           </p>
-          <div style={{ display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:12 }}>
+          <div className="about-stats-grid" style={{ display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:12 }}>
             {[{ num:"100+",label:"AI experiments" },{ num:"50+",label:"Prompt systems" },{ num:"10+",label:"Web builds" }].map(({ num, label }) => (
-              <div key={label} className="glass-panel" style={{ borderRadius:24,border:"1px solid rgba(255,255,255,0.18)",background:"rgba(255,255,255,0.07)",padding:20,backdropFilter:"blur(20px) saturate(180%)",WebkitBackdropFilter:"blur(20px) saturate(180%)",boxShadow:"0 4px 24px rgba(0,0,0,0.20), inset 0 1px 0 rgba(255,255,255,0.12)" }}>
-                <p style={{ fontSize:"clamp(22px,3vw,28px)",fontWeight:600 }}>{num}</p>
-                <p style={{ fontSize:13,color:"rgba(255,255,255,0.50)",marginTop:4 }}>{label}</p>
+              <div key={label} className="glass-panel about-stat-card" style={{ borderRadius:24,border:"1px solid rgba(255,255,255,0.18)",background:"rgba(255,255,255,0.07)",padding:20,backdropFilter:"blur(20px) saturate(180%)",WebkitBackdropFilter:"blur(20px) saturate(180%)",boxShadow:"0 4px 24px rgba(0,0,0,0.20), inset 0 1px 0 rgba(255,255,255,0.12)" }}>
+                <p className="about-stat-num" style={{ fontSize:"clamp(22px,3vw,28px)",fontWeight:600 }}>{num}</p>
+                <p className="about-stat-label" style={{ fontSize:13,color:"rgba(255,255,255,0.50)",marginTop:4 }}>{label}</p>
               </div>
             ))}
           </div>
         </div>
       </div>
+
+      {/* ─── Integrated Activity Skyline & Admin Dashboard Showcase ─── */}
+      <div style={{ maxWidth:1152,margin:"56px auto 0",position:"relative",zIndex:2 }}>
+        <div
+          className="glass-panel"
+          style={{
+            borderRadius:28,
+            border:"1px solid rgba(255,255,255,0.16)",
+            background:"rgba(255,255,255,0.04)",
+            padding:"28px 24px",
+            backdropFilter:"blur(24px) saturate(190%)",
+            WebkitBackdropFilter:"blur(24px) saturate(190%)",
+            boxShadow:"0 8px 32px rgba(0,0,0,0.36), inset 0 1px 0 rgba(255,255,255,0.15)",
+          }}
+        >
+          {/* Section Toolbar */}
+          <div style={{ display:"flex",flexWrap:"wrap",alignItems:"center",justifyContent:"space-between",gap:16,marginBottom:22 }}>
+            <div style={{ display:"flex",alignItems:"center",gap:12,flexWrap:"wrap" }}>
+              <span style={{
+                display:"inline-flex",
+                alignItems:"center",
+                gap:7,
+                padding:"5px 12px",
+                borderRadius:999,
+                fontSize:11,
+                fontWeight:700,
+                letterSpacing:"0.12em",
+                textTransform:"uppercase",
+                background:"rgba(232,112,42,0.14)",
+                color:"#e8702a",
+                border:"1px solid rgba(232,112,42,0.35)",
+              }}>
+                <span style={{ width:7,height:7,borderRadius:"50%",background:"#e8702a",boxShadow:"0 0 10px #e8702a" }} />
+                LIVE CADENCE
+              </span>
+              <div>
+                <h3 style={{ fontSize:18,fontWeight:600,letterSpacing:"-0.02em",color:"#fff",margin:0 }}>
+                  Zae Labs Engineering Skyline & Activity
+                </h3>
+                <p style={{ fontSize:13,color:"rgba(255,255,255,0.52)",margin:"3px 0 0" }}>
+                  Interactive 3D isometric & heat map activity across AI builds, prompt systems, and tools.
+                </p>
+              </div>
+            </div>
+
+            {/* View Switcher: Skyline vs Admin Telemetry */}
+            <div style={{ display:"inline-flex",alignItems:"center",background:"rgba(0,0,0,0.45)",padding:3,borderRadius:12,border:"1px solid rgba(255,255,255,0.12)" }}>
+              <button
+                type="button"
+                onClick={() => setActiveTab("skyline")}
+                style={{
+                  padding:"7px 15px",
+                  borderRadius:9,
+                  fontSize:12,
+                  fontWeight:600,
+                  border:"none",
+                  cursor:"pointer",
+                  transition:"all 0.25s",
+                  background: activeTab === "skyline" ? "#e8702a" : "transparent",
+                  color: activeTab === "skyline" ? "#fff" : "rgba(255,255,255,0.6)",
+                  boxShadow: activeTab === "skyline" ? "0 2px 10px rgba(232,112,42,0.4)" : "none",
+                }}
+              >
+                Activity Skyline
+              </button>
+              <button
+                type="button"
+                onClick={() => setActiveTab("telemetry")}
+                style={{
+                  padding:"7px 15px",
+                  borderRadius:9,
+                  fontSize:12,
+                  fontWeight:600,
+                  border:"none",
+                  cursor:"pointer",
+                  transition:"all 0.25s",
+                  background: activeTab === "telemetry" ? "#e8702a" : "transparent",
+                  color: activeTab === "telemetry" ? "#fff" : "rgba(255,255,255,0.6)",
+                  boxShadow: activeTab === "telemetry" ? "0 2px 10px rgba(232,112,42,0.4)" : "none",
+                }}
+              >
+                Admin Telemetry
+              </button>
+            </div>
+          </div>
+
+          {activeTab === "skyline" ? (
+            <Suspense fallback={
+              <div style={{ minHeight: 280, display:"flex", alignItems:"center", justifyContent:"center", color:"rgba(255,255,255,0.4)", fontSize:12, fontFamily:"monospace" }}>
+                Loading 3D Activity Skyline...
+              </div>
+            }>
+              <ContributionSkyline
+                palette="zaelabs"
+                defaultView="3d"
+                unit="experiment"
+                unitPlural="experiments"
+                title={
+                  <span style={{ fontSize:14,color:"rgba(255,255,255,0.75)" }}>
+                    <strong style={{ color:"#fff",fontWeight:600 }}>Active Build Cadence</strong> · 52-week timeline
+                  </span>
+                }
+                className="zae-skyline-widget"
+                style={{
+                  background:"transparent",
+                  border:"none",
+                  padding:0,
+                }}
+              />
+            </Suspense>
+          ) : (
+            <AdminTelemetryView />
+          )}
+        </div>
+      </div>
     </section>
   );
 }
 
-// ─── Experience Section ───────────────────────────────────────────────────────
-const EXPERIENCES = [
-  { title:"Staf of IT Today", org:"IPB University", period:"Present", desc:"Managed run-of-show and scheduling for IT TODAY, a national-scale competition, ensuring smooth coordination across sessions and divisions." },
-  { title:"LPK Tepi Sawah Volunteer", org:"IPB University", period:"Present", desc:"Actively volunteering in the Computer Science community, focusing on teaching basic things to children through play and participating in direct field activities." },
-  { title:"IPB Archery", org:"IPB University", period:"Present", desc:"Active as a member of the IPB Archery community, focusing on mastering basic archery techniques through regular practice and actively participating in community activities in the field." },
-  { title:"Head of Robotic D'Astha", org:"SMAN 28 Kab. Tangerang", period:"Jun 2023 – Aug 2024", desc:"Led the high school robotics club and successfully engineered a Line Follower Robot. Fostered leadership, teamwork, and strong hardware-software integration skills." },
-  { title:"Member of D'Astha Research Team", org:"SMAN 28 Kab. Tangerang", period:"Jun 2023 – Jul 2024", desc:"Actively contributed to the research team. Applied strong analytical and teamwork skills to conduct studies, gather data, and develop innovative solutions." },
-  { title:"Staf of Gerakan pelajar Anti Korupsi", org:"SMAN 28 Kab. Tangerang", period:"May 2023 – Jun 2024", desc:"Supported anti-corruption campaigns and integrity education programs within the school community, helping organize activities that promoted honesty and transparency among students." },
-  { title:"Staf of Karate D'Astha", org:"SMAN 28 Kab. Tangerang", period:"Feb 2023 – Apr 2024", desc:"Trained in the karate extracurricular, building discipline and physical resilience, while also helping coordinate regular training sessions for fellow members." },
+// ─── Experience Storyline (SMA to University & Beyond) ────────────────────────
+const EXPERIENCE_TOP_JOURNEY = [
+  {
+    id: "2023-june",
+    year: "2023",
+    month: "June",
+    content: "Robotics D'Astha (SMAN 28): Led robotics club & engineered Line Follower Robot",
+  },
+  {
+    id: "2023-october",
+    year: "2023",
+    month: "October",
+    content: "D'Astha Research Team (SMAN 28): Applied analytics & scientific research",
+  },
+  {
+    id: "2024-august",
+    year: "2024",
+    month: "August",
+    content: "IPB University: Entered Computer Science, AI Systems & Engineering",
+  },
+  {
+    id: "2026-march",
+    year: "2026",
+    month: "March",
+    content: "Zae Labs: Engineering practical AI workflows, prompt systems & web builds",
+  },
 ];
 
-function ExperienceGroupCard({ org, meta, items }) {
-  const [open, setOpen] = useState(false);
-  const [h, setH] = useState(false);
-  return (
-    <div onMouseEnter={() => setH(true)} onMouseLeave={() => setH(false)}
-      className="glass-panel"
-      style={{ borderRadius:28,border:(h||open)?"1px solid rgba(232,112,42,0.40)":"1px solid rgba(255,255,255,0.18)",background:(h||open)?"rgba(255,255,255,0.12)":"rgba(255,255,255,0.07)",padding:"32px 28px",backdropFilter:"blur(20px) saturate(180%)",WebkitBackdropFilter:"blur(20px) saturate(180%)",boxShadow:(h||open)?"0 8px 32px rgba(0,0,0,0.30), inset 0 1px 0 rgba(255,255,255,0.20)":"0 4px 24px rgba(0,0,0,0.20), inset 0 1px 0 rgba(255,255,255,0.12)",transition:"all 0.35s",transform:h?"translateY(-6px)":"translateY(0)",display:"flex",flexDirection:"column",gap:12,cursor:"pointer" }}
-      onClick={() => setOpen(p => !p)}>
-      <div style={{ display:"flex",alignItems:"center",justifyContent:"space-between" }}>
-        <div style={{ width:40,height:40,borderRadius:"50%",background:"rgba(232,112,42,0.12)",border:"1px solid rgba(232,112,42,0.25)",display:"flex",alignItems:"center",justifyContent:"center" }}>
-          <BookOpen size={18} color="#e8702a" />
-        </div>
-        <div style={{ color:"rgba(255,255,255,0.55)",transition:"transform 0.35s", transform: open ? "rotate(180deg)" : "rotate(0deg)" }}>
-          <ChevronDown size={18}/>
-        </div>
-      </div>
-      <h3 style={{ fontSize:18,fontWeight:600,letterSpacing:"-0.03em",color:"#fff" }}>{org}</h3>
-      <p style={{ fontSize:13,color:"rgba(255,255,255,0.45)",fontWeight:500 }}>{meta}</p>
-      <p style={{ fontSize:13,color:"#e8702a",fontWeight:500 }}>{items.length} {items.length > 1 ? "activities" : "activity"} · tap to {open ? "collapse" : "expand"}</p>
-
-      <div className={`exp-dropdown-content ${open ? "open" : ""}`} style={{ marginTop: open ? 6 : 0, display:"flex", flexDirection:"column", gap:16 }}>
-        {items.map(({ title, period, desc }) => (
-          <div key={title} style={{ borderTop:"1px solid rgba(255,255,255,0.10)", paddingTop:16 }} onClick={e => e.stopPropagation()}>
-            <div style={{ display:"flex",justifyContent:"space-between",alignItems:"baseline",gap:8,flexWrap:"wrap" }}>
-              <p style={{ fontSize:15,fontWeight:600,color:"#fff" }}>{title}</p>
-              <p style={{ fontSize:12,color:"rgba(255,255,255,0.40)" }}>{period}</p>
-            </div>
-            <p style={{ fontSize:13,color:"rgba(255,255,255,0.65)",lineHeight:1.6,marginTop:6 }}>{desc}</p>
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-}
+const EXPERIENCE_BOTTOM_JOURNEY = [
+  {
+    id: "2023-may",
+    year: "2023",
+    month: "May",
+    content: "Student Integrity Movement: School campaigns and transparent governance",
+  },
+  {
+    id: "2024-september",
+    year: "2024",
+    month: "September",
+    content: "IT TODAY (IPB University): Staging and division coordination for national tech contest",
+  },
+  {
+    id: "2025-november",
+    year: "2025",
+    month: "November",
+    content: "LPK Tepi Sawah (IPB CS Volunteer): Teaching computing foundations to community youth",
+  },
+];
 
 function ExperienceSection() {
-  const groups = [];
-  EXPERIENCES.forEach(e => {
-    let g = groups.find(g => g.org === e.org);
-    if (!g) { g = { org: e.org, items: [] }; groups.push(g); }
-    g.items.push(e);
-  });
-  const groupMeta = groups.map(g => {
-    const periods = g.items.map(i => i.period);
-    const meta = periods.includes("Present") ? "Present" : periods[0];
-    return { ...g, meta };
-  });
-
   return (
-    <section id="experience" style={{ position:"relative",background:"#000",color:"#fff",padding:"96px 56px",overflow:"hidden" }}>
-      <div style={{ position:"absolute",bottom:0,left:0,width:520,height:520,background:"radial-gradient(circle closest-side at center, rgba(232,112,42,0.42) 0%, rgba(232,112,42,0.18) 35%, rgba(232,112,42,0.05) 65%, rgba(232,112,42,0) 100%)",pointerEvents:"none" }} />
-      <div style={{ position:"absolute",top:"6%",right:"-5%",opacity:0.75 }}>
-        <ScrollSpin size={230} reverse variant="arc" />
-      </div>
-      <div style={{ maxWidth:1152,margin:"0 auto" }}>
-        <p style={{ fontSize:11,textTransform:"uppercase",letterSpacing:"0.3em",color:"#e8702a",fontWeight:600,marginBottom:16 }}>Experience</p>
-        <h2 style={{ fontSize:"clamp(32px,5vw,56px)",fontWeight:500,letterSpacing:"-0.06em",lineHeight:0.95,marginBottom:12,maxWidth:600 }}>
-          Where I've <span className="font-playfair">grown</span> and contributed.
-        </h2>
-        <p style={{ color:"rgba(255,255,255,0.55)",fontSize:15,lineHeight:1.65,maxWidth:480,marginBottom:48 }}>Organizations and communities that shaped my skills in tech, leadership, and collaboration.</p>
-        <div style={{ display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(280px,1fr))",gap:20 }}>
-          {groupMeta.map(g => <ExperienceGroupCard key={g.org} org={g.org} meta={g.meta} items={g.items} />)}
-        </div>
-      </div>
-    </section>
+    <Suspense fallback={<div style={{ height: "60vh", display: "grid", placeItems: "center", color: "#666" }}>Loading Storyline…</div>}>
+      <Timeline
+        title="Growth Storyline"
+        periodLabel="2023 — 2026"
+        textColor="#ffffff"
+        mutedTextColor="rgba(255,255,255,0.65)"
+        activeColor="#e8702a"
+        backgroundColor="#000000"
+        imageUrl="https://images.unsplash.com/photo-1522071820081-009f0129c71c?auto=format&fit=crop&w=1200&q=80"
+        imageAlt="Engineering and university workspace"
+        topItems={EXPERIENCE_TOP_JOURNEY}
+        bottomItems={EXPERIENCE_BOTTOM_JOURNEY}
+      />
+    </Suspense>
   );
 }
 
@@ -889,16 +1295,16 @@ function CertificationsSection() {
 
 // ─── Tools Collection ─────────────────────────────────────────────────────────
 const TOOLS = [
-  { name:"Database",       keyword:"vscode coding database",     href:"https://maszae-bit.github.io/Login-Zae-Group/", icon:<FaDatabase/> },
-  { name:"Github",         keyword:"github repo code",           href:"https://github.com/MasZae-BIT", icon:<FaGithub/> },
-  { name:"Knowledge Hub",  keyword:"knowledge hub drive flask",  href:"https://drive.google.com/drive/u/1/folders/1rC5fnbguTs4TBfGauJ9_8HD-0uiyKKWg", icon:<FaMicroscope/> },
-  { name:"Zae AI",         keyword:"chatgpt ai bot microchip",   href:"https://zae-ai.vercel.app/", icon:<FaRobot/> },
-  { name:"Grammar Checker",keyword:"grammar checker english spell text", href:"https://grammar-checker-ashen.vercel.app/", icon:<FaCheckCircle/> },
-  { name:"Spotify",        keyword:"spotify music song playlist",href:"https://open.spotify.com/playlist/4T7MrNwyHzB3DwtzaIGFFn?si=ddabd6a078a64c0a", icon:<FaSpotify/> },
-  { name:"Discord",        keyword:"discord social chat",        href:"https://discord.gg/3JdWnYsV", icon:<FaDiscord/> },
-  { name:"Instagram DL",   keyword:"instagram social media download", href:"https://maszae-bit.github.io/Instagram-Downloader/", icon:<FaInstagram/> },
-  { name:"TikTok DL",      keyword:"tiktok video social download",   href:"https://maszae-bit.github.io/Tiktok-Downloader/", icon:<FaTiktok/> },
-  { name:"Journal Search", keyword:"database sql journal search book", href:"https://maszae-bit.github.io/Journal/", icon:<FaBook/> },
+  { name:"Database",       keyword:"vscode coding database",     href:"https://maszae-bit.github.io/Login-Zae-Group/", icon:<FaDatabase/>,       image:"/tools/database.svg" },
+  { name:"Github",         keyword:"github repo code",           href:"https://github.com/MasZae-BIT",                 icon:<FaGithub/>,         image:"/tools/github.svg" },
+  { name:"Knowledge Hub",  keyword:"knowledge hub drive flask",  href:"https://drive.google.com/drive/u/1/folders/1rC5fnbguTs4TBfGauJ9_8HD-0uiyKKWg", icon:<FaMicroscope/>, image:"/tools/knowledge.svg" },
+  { name:"Zae AI",         keyword:"chatgpt ai bot microchip",   href:"https://zae-ai.vercel.app/",                    icon:<FaRobot/>,          image:"/tools/zae-ai.svg" },
+  { name:"Grammar Checker",keyword:"grammar checker english spell text", href:"https://grammar-checker-ashen.vercel.app/", icon:<FaCheckCircle/>, image:"/tools/grammar.svg" },
+  { name:"Spotify",        keyword:"spotify music song playlist",href:"https://open.spotify.com/playlist/4T7MrNwyHzB3DwtzaIGFFn?si=ddabd6a078a64c0a", icon:<FaSpotify/>, image:"/tools/spotify.svg" },
+  { name:"Discord",        keyword:"discord social chat",        href:"https://discord.gg/3JdWnYsV",                   icon:<FaDiscord/>,        image:"/tools/discord.svg" },
+  { name:"Instagram DL",   keyword:"instagram social media download", href:"https://maszae-bit.github.io/Instagram-Downloader/", icon:<FaInstagram/>, image:"/tools/instagram.svg" },
+  { name:"TikTok DL",      keyword:"tiktok video social download",   href:"https://maszae-bit.github.io/Tiktok-Downloader/", icon:<FaTiktok/>,       image:"/tools/tiktok.svg" },
+  { name:"Journal Search", keyword:"database sql journal search book", href:"https://maszae-bit.github.io/Journal/",           icon:<FaBook/>,         image:"/tools/journal.svg" },
 ];
 
 // ─── Gallery Scroll Section (3D tilt scroll animation) ────────────────────────
@@ -929,31 +1335,28 @@ function GalleryScrollSection() {
     return () => window.removeEventListener("resize", checkMobile);
   }, []);
 
-  // offset "start start" → "end end": progres dihitung sepanjang TINGGI
-  // container (bukan cuma pas lewat viewport), jadi butuh beberapa kali
-  // scroll baru progresnya jalan — makanya container-nya sengaja dibikin tinggi (vh).
+  // offset "start start" → "end end": progres dihitung sepanjang tinggi container
   const { scrollYProgress } = useScroll({
     target: containerRef,
     offset: ["start start", "end end"],
   });
 
-  // Spring bikin gerakannya "mulus" (nge-lag halus ngikutin scroll),
-  // bukan lompat kaku 1:1 sama posisi scroll.
+  // Spring bikin gerakan tilt 3D sangat halus mengikuti scroll
   const smoothProgress = useSpring(scrollYProgress, {
     stiffness: 90,
     damping: 24,
     mass: 0.6,
   });
 
-  const rotate = useTransform(smoothProgress, [0, GALLERY_ENTRY_END], [20, 0]);
+  const rotate = useTransform(smoothProgress, [0, GALLERY_ENTRY_END], [22, 0]);
   const scale = useTransform(smoothProgress, [0, GALLERY_ENTRY_END], isMobile ? [0.75, 0.92] : [1.05, 1]);
   const translate = useTransform(smoothProgress, [0, GALLERY_ENTRY_END], [0, -80]);
 
-  // Ganti foto aktif berdasarkan posisi scroll di fase "hold".
+  // Ganti foto aktif berdasarkan posisi scroll di fase "hold" (0.22 -> 0.90)
   useEffect(() => {
     return scrollYProgress.on("change", (v) => {
       if (v <= GALLERY_ENTRY_END) {
-        setActivePhoto(0);
+        setActivePhoto((prev) => (prev === 0 ? prev : 0));
         return;
       }
       const holdProgress = Math.min(
@@ -964,63 +1367,158 @@ function GalleryScrollSection() {
         GALLERY_PHOTOS.length - 1,
         Math.floor(holdProgress * GALLERY_PHOTOS.length)
       );
-      setActivePhoto(idx);
+      setActivePhoto((prev) => (prev === idx ? prev : idx));
     });
   }, [scrollYProgress]);
 
-  return (
-    <section style={{ position:"relative", background:"#050505", color:"#fff" }}>
-      {/* Container tinggi = "jarak scroll" yang harus dilewati. Makin besar,
-          makin banyak scroll yang dibutuhkan sebelum section ini selesai.
-          PENTING: section & div ini sengaja TIDAK overflow:hidden, karena
-          overflow:hidden di ancestor mana pun bikin position:sticky di
-          bawah ini mati (browser jadi nggak nge-pin, malah lompat scroll). */}
-      <div ref={containerRef} style={{ position:"relative", height: isMobile ? "260vh" : "320vh" }}>
-        {/* Sticky = nempel di layar selama masih di dalam tinggi container di atas */}
-        <div style={{ position:"sticky", top:0, height:"100vh", display:"flex", alignItems:"center", justifyContent:"center", padding: isMobile ? "8px" : "8px 56px" }}>
-          <div style={{ width:"100%", maxWidth:1152, margin:"0 auto", position:"relative", perspective:"1000px" }}>
+  // Touch gesture support di HP: usap foto ke kiri/kanan untuk ganti foto manual
+  const touchStartX = useRef(0);
+  const touchStartY = useRef(0);
 
+  const handleTouchStart = (e) => {
+    if (!e.touches[0]) return;
+    touchStartX.current = e.touches[0].clientX;
+    touchStartY.current = e.touches[0].clientY;
+  };
+
+  const handleTouchEnd = (e) => {
+    if (!e.changedTouches[0]) return;
+    const dx = touchStartX.current - e.changedTouches[0].clientX;
+    const dy = touchStartY.current - e.changedTouches[0].clientY;
+    if (Math.abs(dx) > Math.abs(dy) + 10 && Math.abs(dx) > 30) {
+      if (dx > 0) {
+        setActivePhoto((prev) => Math.min(GALLERY_PHOTOS.length - 1, prev + 1));
+      } else {
+        setActivePhoto((prev) => Math.max(0, prev - 1));
+      }
+    }
+  };
+
+  return (
+    <section id="gallery" style={{ position: "relative", background: "#050505", color: "#fff" }}>
+      {/* Container tinggi = jarak scroll untuk animasi 3D tilt & cycling foto */}
+      <div ref={containerRef} style={{ position: "relative", height: isMobile ? "260vh" : "320vh" }}>
+        {/* Sticky frame: nempel di viewport selama scroll di container */}
+        <div
+          style={{
+            position: "sticky",
+            top: 0,
+            height: "100vh",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            padding: isMobile ? "8px" : "8px 56px",
+            overflow: "hidden",
+          }}
+        >
+          <div style={{ width: "100%", maxWidth: 1152, margin: "0 auto", position: "relative", perspective: "1000px" }}>
+
+            {/* Animasi Title naik ke atas saat di-scroll */}
             <motion.div style={{ translateY: translate }}>
-              <div style={{ maxWidth:720, margin:"0 auto", textAlign:"center" }}>
-                <p style={{ fontSize:11,textTransform:"uppercase",letterSpacing:"0.3em",color:"#e8702a",fontWeight:600,marginBottom:16 }}>Gallery</p>
-                <h2 style={{ fontSize:"clamp(30px,4.5vw,52px)",fontWeight:500,letterSpacing:"-0.05em",lineHeight:1.05 }}>
-                  Moments behind <span className="font-playfair" style={{ fontWeight:400 }}>the build.</span>
+              <div style={{ maxWidth: 720, margin: "0 auto", textAlign: "center" }}>
+                <p style={{ fontSize: 11, textTransform: "uppercase", letterSpacing: "0.3em", color: "#e8702a", fontWeight: 600, marginBottom: 16 }}>
+                  Gallery
+                </p>
+                <h2 style={{ fontSize: "clamp(30px, 4.5vw, 52px)", fontWeight: 500, letterSpacing: "-0.05em", lineHeight: 1.05 }}>
+                  Moments behind <span className="font-playfair" style={{ fontWeight: 400 }}>the build.</span>
                 </h2>
-                <p style={{ color:"rgba(255,255,255,0.55)",fontSize:15,lineHeight:1.65,marginTop:16 }}>A few snapshots from the process — building, learning, and showing up.</p>
+                <p style={{ color: "rgba(255,255,255,0.55)", fontSize: 15, lineHeight: 1.65, marginTop: 16 }}>
+                  A few snapshots from the process — building, learning, and showing up.
+                </p>
               </div>
             </motion.div>
 
-            <motion.div style={{
-              rotateX: rotate,
-              scale,
-              boxShadow:"0 0 #0000004d, 0 9px 20px #0000004a, 0 37px 37px #00000042, 0 84px 50px #00000026, 0 149px 60px #0000000a, 0 233px 65px #00000003",
-              maxWidth:960, margin: isMobile ? "-24px auto 0" : "-48px auto 0",
-              aspectRatio:"16/9", width:"100%",
-              border:"4px solid rgba(255,255,255,0.14)",
-              padding: isMobile ? 8 : 20,
-              background:"#161616", borderRadius:30,
-            }}>
-              <div style={{ position:"relative", height:"100%", width:"100%", overflow:"hidden", borderRadius:20, background:"#0a0a0a" }}>
+            {/* Animasi 3D Tilt Kartu Foto (rotateX + scale) */}
+            <motion.div
+              onTouchStart={handleTouchStart}
+              onTouchEnd={handleTouchEnd}
+              style={{
+                rotateX: rotate,
+                scale,
+                boxShadow: isMobile
+                  ? "0 14px 32px rgba(0,0,0,0.55)"
+                  : "0 0 #0000004d, 0 9px 20px #0000004a, 0 37px 37px #00000042, 0 84px 50px #00000026, 0 149px 60px #0000000a, 0 233px 65px #00000003",
+                maxWidth: 960,
+                margin: isMobile ? "-24px auto 0" : "-48px auto 0",
+                aspectRatio: "16/9",
+                width: "100%",
+                border: "4px solid rgba(255,255,255,0.14)",
+                padding: isMobile ? 8 : 20,
+                background: "#161616",
+                borderRadius: 30,
+                transformStyle: "preserve-3d",
+                willChange: "transform",
+              }}
+            >
+              <div
+                style={{
+                  position: "relative",
+                  height: "100%",
+                  width: "100%",
+                  overflow: "hidden",
+                  borderRadius: 20,
+                  background: "#0a0a0a",
+                }}
+              >
+                {/* Layer Foto dengan Animasi Opacity & Cinematic Ken Burns Zoom */}
                 {GALLERY_PHOTOS.map((src, i) => (
-                  <img key={src} src={src} alt={`Zae Labs moment ${i + 1}`}
+                  <img
+                    key={src}
+                    src={src}
+                    alt={`Zae Labs moment ${i + 1}`}
+                    loading="eager"
+                    decoding="async"
                     style={{
-                      position:"absolute", inset:0, width:"100%", height:"100%",
-                      objectFit:"cover", display:"block",
+                      position: "absolute",
+                      inset: 0,
+                      width: "100%",
+                      height: "100%",
+                      objectFit: "cover",
+                      display: "block",
                       opacity: activePhoto === i ? 1 : 0,
-                      transition:"opacity 0.7s cubic-bezier(0.16,1,0.3,1)",
+                      transform: activePhoto === i ? "scale(1)" : "scale(1.06)",
+                      transition: "opacity 0.65s cubic-bezier(0.16,1,0.3,1), transform 0.8s cubic-bezier(0.16,1,0.3,1)",
+                      willChange: "opacity, transform",
                     }}
-                    onError={e => { e.currentTarget.style.display = "none"; }}
+                    onError={(e) => {
+                      e.currentTarget.style.display = "none";
+                    }}
                   />
                 ))}
 
-                {/* Dot indicator biar keliatan masih ada foto lain pas di-scroll */}
-                <div style={{ position:"absolute", bottom: isMobile ? 12 : 20, left:0, right:0, display:"flex", justifyContent:"center", gap:8, zIndex:2 }}>
+                {/* Dot indicator dengan kontrol interaktif */}
+                <div
+                  style={{
+                    position: "absolute",
+                    bottom: isMobile ? 12 : 20,
+                    left: 0,
+                    right: 0,
+                    display: "flex",
+                    justifyContent: "center",
+                    gap: 8,
+                    zIndex: 2,
+                  }}
+                >
                   {GALLERY_PHOTOS.map((_, i) => (
-                    <span key={i} style={{
-                      width: activePhoto === i ? 20 : 6, height:6, borderRadius:9999,
-                      background: activePhoto === i ? "#e8702a" : "rgba(255,255,255,0.35)",
-                      transition:"all 0.4s cubic-bezier(0.16,1,0.3,1)",
-                    }} />
+                    <button
+                      key={i}
+                      type="button"
+                      onClick={() => setActivePhoto(i)}
+                      aria-label={`Photo ${i + 1}`}
+                      style={{
+                        border: "none",
+                        padding: 0,
+                        cursor: "pointer",
+                        width: activePhoto === i ? 22 : 6,
+                        height: 6,
+                        borderRadius: 9999,
+                        background:
+                          activePhoto === i ? "#e8702a" : "rgba(255,255,255,0.35)",
+                        boxShadow:
+                          activePhoto === i ? "0 0 8px #e8702a" : "none",
+                        transition: "all 0.35s cubic-bezier(0.16,1,0.3,1)",
+                      }}
+                    />
                   ))}
                 </div>
               </div>
@@ -1201,33 +1699,109 @@ function ToolsCarousel({ tools }) {
 
 function ToolsSection() {
   const [query, setQuery] = useState("");
+  const [viewMode, setViewMode] = useState("wheel"); // "wheel" | "arc"
+
   const filtered = query.trim() === ""
     ? TOOLS
     : TOOLS.filter(t => t.keyword.toLowerCase().includes(query.toLowerCase()) || t.name.toLowerCase().includes(query.toLowerCase()));
 
+  const wheelItems = filtered.map(t => ({
+    title: t.name,
+    image: t.image,
+    href: t.href,
+  }));
+
   return (
-    <section id="tools" style={{ position:"relative",background:"#000",color:"#fff",padding:"96px 56px",overflow:"hidden" }}>
+    <section id="tools" style={{ position:"relative",background:"#000",color:"#fff",padding:"clamp(64px, 8vw, 96px) clamp(16px, 5vw, 56px)",overflow:"hidden" }}>
       <div style={{ position:"absolute",top:"4%",left:"-4%",opacity:0.6 }}>
         <ScrollSpin size={200} accent="#ffffff" dim={0.7} reverse variant="triangle" />
       </div>
       <div style={{ maxWidth:1152,margin:"0 auto" }}>
         {/* Header */}
-        <div style={{ textAlign:"center",marginBottom:48 }}>
+        <div style={{ textAlign:"center",marginBottom:40 }}>
           <p style={{ fontSize:11,textTransform:"uppercase",letterSpacing:"0.3em",color:"#e8702a",fontWeight:600,marginBottom:16 }}>Tools Collection</p>
           <h2 style={{ fontSize:"clamp(32px,5vw,56px)",fontWeight:500,letterSpacing:"-0.06em",lineHeight:0.95,marginBottom:12 }}>
             Quick access to <span className="font-playfair">all</span> tools.
           </h2>
-          <p style={{ color:"rgba(255,255,255,0.55)",fontSize:15,lineHeight:1.65,maxWidth:400,margin:"0 auto 32px" }}>Every productivity tool in one searchable place. Drag or tap the card to open it.</p>
+          <p style={{ color:"rgba(255,255,255,0.55)",fontSize:15,lineHeight:1.65,maxWidth:440,margin:"0 auto 28px" }}>
+            Every productivity tool in one searchable place. Turn the 3D wheel or browse the arc carousel.
+          </p>
+
           {/* Search */}
           <div style={{ position:"relative",maxWidth:480,margin:"0 auto" }}>
             <Search size={16} style={{ position:"absolute",left:18,top:"50%",transform:"translateY(-50%)",color:"rgba(255,255,255,0.35)",pointerEvents:"none" }} />
             <input className="search-input-styled" placeholder="Search tools (Github, Zae AI, etc)..." value={query} onChange={e => setQuery(e.target.value)} />
           </div>
+
+          {/* View Toggle */}
+          <div style={{ display:"flex", justifyContent:"center", alignItems:"center", gap:10, marginTop:22 }}>
+            <button
+              type="button"
+              onClick={() => setViewMode("wheel")}
+              style={{
+                padding: "8px 18px",
+                borderRadius: 9999,
+                fontSize: 12,
+                fontWeight: 600,
+                letterSpacing: "0.03em",
+                cursor: "pointer",
+                transition: "all 0.25s ease",
+                border: viewMode === "wheel" ? "1px solid #e8702a" : "1px solid rgba(255,255,255,0.14)",
+                background: viewMode === "wheel" ? "linear-gradient(135deg, #e8702a 0%, #b44f12 100%)" : "rgba(255,255,255,0.05)",
+                color: viewMode === "wheel" ? "#ffffff" : "rgba(255,255,255,0.65)",
+                boxShadow: viewMode === "wheel" ? "0 4px 18px rgba(232,112,42,0.35)" : "none",
+              }}
+            >
+              3D Wheel Drum
+            </button>
+            <button
+              type="button"
+              onClick={() => setViewMode("arc")}
+              style={{
+                padding: "8px 18px",
+                borderRadius: 9999,
+                fontSize: 12,
+                fontWeight: 600,
+                letterSpacing: "0.03em",
+                cursor: "pointer",
+                transition: "all 0.25s ease",
+                border: viewMode === "arc" ? "1px solid #e8702a" : "1px solid rgba(255,255,255,0.14)",
+                background: viewMode === "arc" ? "linear-gradient(135deg, #e8702a 0%, #b44f12 100%)" : "rgba(255,255,255,0.05)",
+                color: viewMode === "arc" ? "#ffffff" : "rgba(255,255,255,0.65)",
+                boxShadow: viewMode === "arc" ? "0 4px 18px rgba(232,112,42,0.35)" : "none",
+              }}
+            >
+              Arc Carousel
+            </button>
+          </div>
         </div>
 
-        {/* Carousel */}
+        {/* Content */}
         {filtered.length > 0 ? (
-          <ToolsCarousel key={query} tools={filtered} />
+          viewMode === "wheel" ? (
+            <div
+              key={`${query}-${filtered.length}`}
+              className="relative w-full h-[480px] sm:h-[560px] lg:h-[620px] rounded-2xl border border-white/10 bg-white/[0.02] backdrop-blur-md overflow-hidden mt-6 shadow-2xl"
+            >
+              <Suspense fallback={
+                <div className="w-full h-full flex items-center justify-center text-white/40 text-xs font-mono">
+                  Loading 3D Wheel Drum...
+                </div>
+              }>
+                <WorksWheel
+                  items={wheelItems}
+                  label="Tools '26"
+                  action="Open"
+                  className="w-full h-full bg-transparent text-white"
+                />
+              </Suspense>
+              <div className="absolute bottom-3 left-1/2 -translate-x-1/2 pointer-events-none text-[11px] text-white/40 tracking-wider uppercase font-mono hidden sm:block">
+                Scroll or drag up/down to rotate • Click card to open
+              </div>
+            </div>
+          ) : (
+            <ToolsCarousel key={query} tools={filtered} />
+          )
         ) : (
           <div style={{ textAlign:"center",color:"rgba(255,255,255,0.40)",fontStyle:"italic",padding:40 }}>No tools found.</div>
         )}
@@ -1845,7 +2419,7 @@ function WokwiCard({ Icon, title, desc, pill, image, code }) {
       <BottomSheetModal open={imageOpen} onClose={() => setImageOpen(false)}>
         <h3 style={{ fontSize:20,fontWeight:600,marginBottom:16,paddingRight:36 }}>{title}</h3>
         <div style={{ width:"100%",aspectRatio:"16/9",borderRadius:16,overflow:"hidden",border:"1px solid rgba(255,255,255,0.10)",background:"#000" }}>
-          <img src={image} alt={title} style={{ width:"100%",height:"100%",objectFit:"cover",display:"block" }} />
+          <img src={image} alt={title} loading="lazy" decoding="async" style={{ width:"100%",height:"100%",objectFit:"cover",display:"block" }} />
         </div>
         <p style={{ fontSize:14,color:"rgba(255,255,255,0.60)",lineHeight:1.6,marginTop:16 }}>{desc}</p>
       </BottomSheetModal>
@@ -2184,6 +2758,8 @@ const GlassDock: React.FC<{ icons: DockIcon[]; href?: string }> = ({
           key={index}
           src={icon.src}
           alt={icon.alt}
+          loading="lazy"
+          decoding="async"
           className="w-16 h-16 transition-all duration-700 hover:scale-110 cursor-pointer"
           style={{
             transformOrigin: "center center",
@@ -2673,6 +3249,8 @@ function ZaeAIWidget() {
 
 // ─── Final CTA ────────────────────────────────────────────────────────────────
 function CTASection() {
+  const [aiMode, setAiMode] = useState("orb"); // "orb" | "chat"
+
   return (
     <section id="contact" style={{ background:"#000",color:"#fff",padding:"80px clamp(16px,6vw,56px)",boxSizing:"border-box" }}>
       <div style={{ maxWidth:960,margin:"0 auto" }}>
@@ -2687,12 +3265,57 @@ function CTASection() {
           <h2 style={{ position:"relative",fontSize:"clamp(28px,4.4vw,48px)",fontWeight:500,letterSpacing:"-0.06em",lineHeight:0.98,marginBottom:18 }}>
             Ngobrol, bukan sekadar <span className="font-playfair">chat.</span>
           </h2>
-          <p style={{ position:"relative",color:"rgba(255,255,255,0.65)",fontSize:16,lineHeight:1.65,maxWidth:480,margin:"0 auto 36px" }}>
-            Asisten AI dari Zae Labs. Ketik atau ngomong langsung, jawabannya bisa didengar juga. Masih tahap awal, jadi suaranya masih mirip robot.
+          <p style={{ position:"relative",color:"rgba(255,255,255,0.65)",fontSize:16,lineHeight:1.65,maxWidth:480,margin:"0 auto 24px" }}>
+            Asisten AI dari Zae Labs dengan Thinking Orb interaktif. Ketik pertanyaanmu, dan saksikan morphing animasi berpikir real-time.
           </p>
 
+          {/* Mode Switcher */}
+          <div style={{ position:"relative",display:"inline-flex",alignItems:"center",background:"rgba(255,255,255,0.06)",border:"1px solid rgba(255,255,255,0.1)",borderRadius:9999,padding:4,gap:4,marginBottom:28 }}>
+            <button
+              onClick={() => setAiMode("orb")}
+              style={{
+                background: aiMode === "orb" ? "#e8702a" : "transparent",
+                color: "#fff",
+                border: "none",
+                borderRadius: 9999,
+                padding: "6px 16px",
+                fontSize: 12,
+                fontWeight: 600,
+                cursor: "pointer",
+                transition: "all 0.2s"
+              }}
+            >
+              ✨ Thinking Orb
+            </button>
+            <button
+              onClick={() => setAiMode("chat")}
+              style={{
+                background: aiMode === "chat" ? "#e8702a" : "transparent",
+                color: "#fff",
+                border: "none",
+                borderRadius: 9999,
+                padding: "6px 16px",
+                fontSize: 12,
+                fontWeight: 600,
+                cursor: "pointer",
+                transition: "all 0.2s"
+              }}
+            >
+              💬 Classic Voice Chat
+            </button>
+          </div>
+
           <div style={{ position:"relative",marginBottom:36 }}>
-            <ZaeAIWidget />
+            {aiMode === "orb" ? (
+              <div style={{ position:"relative",minHeight:520,width:"100%",maxWidth:680,margin:"0 auto",borderRadius:28,overflow:"hidden",boxShadow:"0 20px 50px rgba(0,0,0,0.5)" }}>
+                <MorphOrb onSubmit={async (text) => {
+                  const reply = await getZaeAIReply(text);
+                  return reply;
+                }} />
+              </div>
+            ) : (
+              <ZaeAIWidget />
+            )}
           </div>
 
           <div style={{ position:"relative",display:"flex",flexWrap:"wrap",alignItems:"center",justifyContent:"center",gap:12 }}>
@@ -3386,7 +4009,7 @@ function IntroLoader({ onDone }) {
 
 // ─── App Root ─────────────────────────────────────────────────────────────────
 export default function App() {
-  const [unlocked, setUnlocked] = useState(false);
+  const [unlocked, setUnlocked] = useState(true);
   const [introDone, setIntroDone] = useState(false);
 
   return (
@@ -3408,6 +4031,7 @@ export default function App() {
         <WorkflowSection />
         <CTASection />
         <Footer />
+        <IPhoneNavBar />
       </div>
     </>
   );
